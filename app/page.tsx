@@ -1,23 +1,36 @@
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import styles from "@/app/components/home.module.css";
-import { lusitana } from "@/app/components/fonts";
 import Image from "next/image";
 import SideNav from "./components/sidenav";
+import Navbar from "./components/navbar";
 
 export default function Page() {
   return (
-    <main className="flex min-h-screen flex-col p-6">
-      <div className="flex flex-col h-10 shrink-0 justify-end rounded-lg bg-blue-500 p-4 md:h-36 text-white text-4xl">
-        <div>DEAR Mandi</div>
-        <div>Double Entry Accounting and Reporting</div>
+    <>
+    <Navbar/>
+      <div className="max-w-4xl mx-auto mt-10 px-4">
+        <h1 className="text-3xl font-bold text-center mb-6">Welcome to Our Accounting Services</h1>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">Inventory Management</h2>
+          <p>Efficiently manage your inventory and stock levels.</p>
+        </section>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">Sales Tracking</h2>
+          <p>Keep track of sales performance and metrics.</p>
+        </section>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">Purchase Orders</h2>
+          <p>Manage your purchasing process and supplier interactions.</p>
+        </section>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">Financial Reports</h2>
+          <p>Access comprehensive financial reports for informed decision-making.</p>
+        </section>
+        <section>
+          <h2 className="text-xl font-semibold mb-2">FAQs</h2>
+          <p>Find answers to common questions about our accounting services.</p>
+        </section>
       </div>
-      <div className="w-full flex-none md:w-64">
-        <SideNav />
-      </div>
-      <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Dashboard
-      </h1>
-    </main>
+    </>
   );
 }
