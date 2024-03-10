@@ -1,4 +1,7 @@
+from typing import List
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import uvicorn
 from python_accounting.config import config
 from sqlalchemy.orm import DeclarativeBase
@@ -17,23 +20,40 @@ engine = create_engine(database["url"])
 app = FastAPI()
 Base.metadata.create_all(engine) # run migrations to create tables
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.get("/api/python")
 def hello_world():
     return {"message": "Hello World"}
 
-@app.get("/api/list_entities")
+@app.get("/api/entities")
 def list_entities():
     with get_session(engine) as session:
         stmt = select(Entity)
         entities = session.scalars(stmt).all()
         return entities
-
-
-@app.get("/api/create_entity/{name}")
-def create_entity(name: str):
-    print("Hello there!")
+    
+@app.get("/api/entity/{id}")
+def list_entity(id: int):
     with get_session(engine) as session:
-        entity = Entity(name=name)
+        entity = session.query(Entity).filter(Entity.id == id).first()
+        return entity
+
+class entityName(BaseModel):
+    name: str
+
+@app.post("/api/create_entity")
+def create_entity(entityName: entityName):
+    print("Hello there!")
+    print(entityName)
+    with get_session(engine) as session:
+        entity = Entity(name=entityName.name)
         session.add(entity)
         session.commit() # This automatically sets up a Reporting Period for the Entity
 
