@@ -19,7 +19,7 @@ export default function Navbar() {
             <Link href="/home/sales" className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block">Sales</Link>
           </div>
           <div className="bg-gray-800 p-4 rounded-lg">
-            <Link href="/home/purchases" className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block">Purchases</Link>
+            <Link href="/entities" className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block">Purchases</Link>
           </div>
           <div className="bg-gray-800 p-4 rounded-lg">
             <Link href="/home/report" className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block">Report</Link>

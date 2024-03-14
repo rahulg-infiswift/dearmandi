@@ -26,7 +26,14 @@ const EntitiesList = () => {
   const renderListData = (entity, idx) => {
     return (
       <div key={idx}>
-        <Link href={`/entities/${entity.id}`}>{entity.name}</Link>
+        <ol className="list-disc pl-2 font-bold">
+          <Link
+            className="text-blue-500 hover:text-blue-700"
+            href={`/entities/${entity.id}`}
+          >
+            {entity.name}
+          </Link>
+        </ol>
       </div>
     );
   };
