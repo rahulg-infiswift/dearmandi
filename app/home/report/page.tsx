@@ -1,10 +1,15 @@
-import Layout from '../../layout';
+import Navbar from "@/app/components/Navbar";
+import Layout from "../../layout";
 
 const Report = () => (
-  <Layout>
+  <>
+    <Navbar />
     <h1>Financial Reports</h1>
-    <p>Generate comprehensive financial reports for insights into your business's financial health. Analyze income, expenses, and profitability.</p>
-  </Layout>
+    <p>
+      Generate comprehensive financial reports for insights into your business's
+      financial health. Analyze income, expenses, and profitability.
+    </p>
+  </>
 );
 
 export default Report;

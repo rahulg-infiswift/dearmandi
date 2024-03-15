@@ -12,3 +12,11 @@ class CreateTaxAccountsSchema(BaseModel):
 class CreateTransactionSchema(BaseModel):
     entity_id: int
     amount: int
+
+class CreateCPTransactionSchema(BaseModel):
+    entity_name: str
+    crop_name: str
+    quantity: int
+    amount: int
+
+    

@@ -1,7 +1,7 @@
 from datetime import datetime
 import json
 from typing import List
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
@@ -12,10 +12,9 @@ from sqlalchemy import and_, select
 from python_accounting.models import Base
 from sqlalchemy import create_engine
 from python_accounting.database.session import get_session
-from python_accounting.models import Account, Entity, Currency, Tax, LineItem
-from python_accounting.schemas import CreateEntitySchema, CreateAccountsSchema, CreateTaxAccountsSchema, CreateTransactionSchema
-from python_accounting.transactions import CashSale
+from python_accounting import models, schemas
 from python_accounting.reports import IncomeStatement
+from python_accounting.transactions.cash_purchase import CashPurchase
 
 # url = "postgresql://postgres:ashoktraders@localhost:5432/dearmandi-dev"
 # config = config.Config("api/config.toml")
@@ -37,92 +36,100 @@ app.add_middleware(
 def hello_world():
     return {"message": "Hello World"}
 
-@app.get("/api/list_entities")
+@app.get("/api/entities")
 def list_entities():
     with get_session(engine) as session:
-        stmt = select(Entity)
+        stmt = select(models.Entity)
         entities = session.scalars(stmt).all()
         return entities
     
-@app.get("/api/list_entities/{entity_id}")
+@app.get("/api/entities/{entity_id}")
 def list_entity(entity_id: int):
     with get_session(engine) as session:
-        entity = session.query(Entity).filter(Entity.id == entity_id).first()
+        entity = session.query(models.Entity).filter(models.Entity.id == entity_id).first()
         return entity
 
-@app.post("/api/create_entity")
-def create_entity(payload: CreateEntitySchema):
+@app.post("/api/create-entity")
+def create_entity(payload: schemas.CreateEntitySchema):
     print("Hello there!")
     print(payload)
     with get_session(engine) as session:
-        entity = Entity(name=payload.name)
-        session.add(entity)
+        # Check if the entity already exists in the database
+        db_entity = session.query(models.Entity).filter(models.Entity.name == payload.name).first()
+        print(db_entity)
+        if db_entity:
+            raise HTTPException(status_code=400, detail="Entity already exists")
+            
+        # If the entity does not exist, create a new one
+        entity = models.Entity(name=payload.name)
+        session.add(models.entity)
         session.commit() # This automatically sets up a Reporting Period for the Entity
 
-        currency = Currency(name="US Dollars", code="USD", entity_id=entity.id)
+        currency = models.Currency(name="US Dollars", code="USD", entity_id=entity.id)
         session.add(currency)
         session.commit()
+        return entity
 
-@app.get("/api/list_accounts/{entity_id}")
+@app.get("/api/get-accounts/{entity_id}")
 def list_accounts(entity_id):
     with get_session(engine) as session:
-        entity = session.query(Entity).filter(Entity.id == entity_id).first()
+        entity = session.query(models.Entity).filter(models.Entity.id == entity_id).first()
         session.entity = entity
-        accounts = session.query(Account).all()
+        accounts = session.query(models.Account).all()
         return accounts
 
-@app.post("/api/create_accounts")
-def create_accounts(payload: CreateAccountsSchema):
+@app.post("/api/create-accounts")
+def create_accounts(payload: schemas.CreateAccountsSchema):
     with get_session(engine) as session:
-        entity = session.query(Entity).filter(Entity.id == payload.entity_id).first()
+        entity = session.query(models.Entity).filter(models.Entity.id == payload.entity_id).first()
         session.entity = entity
-        currency = session.query(Currency).filter(Currency.entity_id == payload.entity_id).first()
+        currency = session.query(models.Currency).filter(models.Currency.entity_id == payload.entity_id).first()
         # Setup Accounts
-        tax_account = Account(
+        tax_account = models.models.Account(
             name="Tax Account",
-            account_type=Account.AccountType.CONTROL,
+            account_type= models.models.Account.AccountType.CONTROL,
             currency_id=currency.id,
             entity_id=entity.id,
         )
-        bank_account = Account(
+        bank_account = models.Account(
             name="Bank Account",
-            account_type=Account.AccountType.BANK,
+            account_type=models.Account.AccountType.BANK,
             currency_id=currency.id,
             entity_id=entity.id,
         )
-        revenue_account = Account(
+        revenue_account = models.Account(
             name="Revenue Account",
-            account_type=Account.AccountType.OPERATING_REVENUE,
+            account_type=models.Account.AccountType.OPERATING_REVENUE,
             currency_id=currency.id,
             entity_id=entity.id,
         )
-        client_account = Account(
+        client_account = models.Account(
             name="Client Account",
-            account_type=Account.AccountType.RECEIVABLE,
+            account_type=models.Account.AccountType.RECEIVABLE,
             currency_id=currency.id,
             entity_id=entity.id,
         )
-        supplier_account = Account(
+        supplier_account = models.Account(
             name="Supplier Account",
-            account_type=Account.AccountType.PAYABLE,
+            account_type=models.Account.AccountType.PAYABLE,
             currency_id=currency.id,
             entity_id=entity.id,
         )
-        opex_account = Account(
+        opex_account = models.Account(
             name="Opex Account",
-            account_type=Account.AccountType.OPERATING_EXPENSE,
+            account_type=models.Account.AccountType.OPERATING_EXPENSE,
             currency_id=currency.id,
             entity_id=entity.id,
         )
-        expense_account = Account(
+        expense_account = models.Account(
             name="Expense Account",
-            account_type=Account.AccountType.DIRECT_EXPENSE,
+            account_type=models.Account.AccountType.DIRECT_EXPENSE,
             currency_id=currency.id,
             entity_id=entity.id,
         )
-        asset_account = Account(
+        asset_account = models.Account(
             name="Asset Account",
-            account_type=Account.AccountType.NON_CURRENT_ASSET,
+            account_type=models.Account.AccountType.NON_CURRENT_ASSET,
             currency_id=currency.id,
             entity_id=entity.id,
         )    
@@ -139,78 +146,82 @@ def create_accounts(payload: CreateAccountsSchema):
         ])
         session.commit()
 
-@app.post("/api/create_tax_accounts")
-def create_tax_accounts(payload: CreateTaxAccountsSchema):
+@app.post("/api/create-tax-accounts")
+def create_tax_accounts(payload: schemas.CreateTaxAccountsSchema):
     with get_session(engine) as session:
-        entity = session.query(Entity).filter(Entity.id == payload.entity_id).first()
+        entity = session.query(models.Entity).filter(models.Entity.id == payload.entity_id).first()
         session.entity = entity
-        tax_account = session.query(Account).filter(
-            and_(Account.entity_id == payload.entity_id,
-                 Account.name == "Tax Account")
+        tax_account = session.query(models.Account).filter(
+            and_(models.Account.entity_id == payload.entity_id,
+                 models.Account.name == "Tax Account")
         ).first()
 
-        output_tax = Tax(
+        output_tax = models.Tax(
             name="Output Vat",
             code="OTPT",
-            account_id=tax_account.id, # This account was created earlier
+            account_id=tax_account.account.id, # This account was created earlier
             rate=20,
             entity_id=entity.id,
         )
-        input_tax = Tax(
+        input_tax = models.Tax(
             name="Input Vat",
             code="INPT",
-            account_id=tax_account.id,
+            account_id=tax_account.account.id,
             rate=10,
             entity_id=entity.id,
         )
         session.add_all([output_tax, input_tax])
         session.commit()
 
-@app.post("/api/transaction")   
-def transaction(payload: CreateTransactionSchema):
+@app.post("/api/create-transaction-and-lineitem-cp")   
+def transaction(payload: schemas.CreateCPTransactionSchema):
+    print("hello there!")
     with get_session(engine) as session:
-        entity = session.query(Entity).filter(Entity.id == payload.entity_id).first()
+        entity = session.query(models.Entity).filter(models.Entity.name == payload.entity_name).first()
         session.entity = entity
-        bank_account = session.query(Account).filter(
-            and_(Account.entity_id == payload.entity_id,
-                 Account.name == "Bank Account")
+        print("entity_id", entity.id)
+        bank_account = session.query(models.Account).filter(
+            and_(models.Account.entity_id == entity.id,
+                 models.Account.name == "Bank Account")
         ).first()
-        revenue_account = session.query(Account).filter(
-            and_(Account.entity_id == payload.entity_id,
-                 Account.name == "Revenue Account")
+        opex_account = session.query(models.Account).filter(
+            and_(models.Account.entity_id == entity.id,
+                 models.Account.name == "Opex Account")
         ).first()
-        output_tax = session.query(Tax).filter(
-            and_(Tax.entity_id == payload.entity_id,
-                 Tax.name == "Output Vat")
+        output_tax = session.query(models.Tax).filter(
+            and_(models.Tax.entity_id == entity.id,
+                 models.Tax.name == "Output Vat")
         ).first()
 
-        cash_sale = CashSale(
-            narration="Cash Sale Transaction",
+        print("bank_account", bank_account)
+        cash_purchase = CashPurchase(
+            narration="Cash Purchase Transaction",
             transaction_date=datetime.now(),
             account_id=bank_account.id,
             entity_id=entity.id,
         )
-        session.add(cash_sale)
-        session.flush() # Intermediate save does not record the transaction in the Ledger
+        session.add(cash_purchase)
+        session.flush()
 
-        cash_sale_line_item = LineItem(
-            narration="Cash Sale line item",
-            account_id=revenue_account.id,
+        cash_purchase_line_item = models.LineItem(
+            narration=payload.crop_name,
+            account_id=opex_account.id,
             amount=payload.amount,
+            quantity= payload.quantity,
             tax_id=output_tax.id,
             entity_id=entity.id,
         )
-        session.add(cash_sale_line_item)
+        session.add(cash_purchase_line_item)
         session.flush()
 
-        cash_sale.line_items.add(cash_sale_line_item)
-        session.add(cash_sale)
-        cash_sale.post(session) # This posts the Transaction to the Ledger
+        cash_purchase.line_items.add(cash_purchase_line_item)
+        session.add(cash_purchase)
+        cash_purchase.post(session)
 
 @app.get("/api/income_statement/{entity_id}")
 def income_statement(entity_id: int):
     with get_session(engine) as session:
-        entity = session.query(Entity).filter(Entity.id == entity_id).first()
+        entity = session.query(models.Entity).filter(models.Entity.id == entity_id).first()
         session.entity = entity
 
         income_statement = IncomeStatement(session) 
