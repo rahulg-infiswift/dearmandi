@@ -1,8 +1,6 @@
-"use client";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import Image from "next/image";
-import SideNav from "./components/sidenav";
 import Navbar from "./components/Navbar";
 
 export default function Page() {

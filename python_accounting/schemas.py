@@ -13,10 +13,14 @@ class CreateTransactionSchema(BaseModel):
     entity_id: int
     amount: int
 
-class CreateCPTransactionSchema(BaseModel):
+class CreateCashPurchaseSchema(BaseModel):
     entity_name: str
     crop_name: str
     quantity: int
     amount: int
 
-    
+class CreateCashSaleSchema(BaseModel):
+    entity_name: str
+    crop_name: str
+    quantity: int
+    amount: int

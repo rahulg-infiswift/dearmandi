@@ -12,9 +12,8 @@ from sqlalchemy import and_, select
 from python_accounting.models import Base
 from sqlalchemy import create_engine
 from python_accounting.database.session import get_session
-from python_accounting import models, schemas
+from python_accounting import models, schemas, transactions
 from python_accounting.reports import IncomeStatement
-from python_accounting.transactions.cash_purchase import CashPurchase
 
 # url = "postgresql://postgres:ashoktraders@localhost:5432/dearmandi-dev"
 # config = config.Config("api/config.toml")
@@ -62,7 +61,8 @@ def create_entity(payload: schemas.CreateEntitySchema):
             
         # If the entity does not exist, create a new one
         entity = models.Entity(name=payload.name)
-        session.add(models.entity)
+        print("creating entity", entity)
+        session.add(entity)
         session.commit() # This automatically sets up a Reporting Period for the Entity
 
         currency = models.Currency(name="US Dollars", code="USD", entity_id=entity.id)
@@ -80,14 +80,15 @@ def list_accounts(entity_id):
 
 @app.post("/api/create-accounts")
 def create_accounts(payload: schemas.CreateAccountsSchema):
+    print("Create account payload", payload)
     with get_session(engine) as session:
         entity = session.query(models.Entity).filter(models.Entity.id == payload.entity_id).first()
         session.entity = entity
         currency = session.query(models.Currency).filter(models.Currency.entity_id == payload.entity_id).first()
         # Setup Accounts
-        tax_account = models.models.Account(
+        tax_account = models.Account(
             name="Tax Account",
-            account_type= models.models.Account.AccountType.CONTROL,
+            account_type= models.Account.AccountType.CONTROL,
             currency_id=currency.id,
             entity_id=entity.id,
         )
@@ -159,22 +160,22 @@ def create_tax_accounts(payload: schemas.CreateTaxAccountsSchema):
         output_tax = models.Tax(
             name="Output Vat",
             code="OTPT",
-            account_id=tax_account.account.id, # This account was created earlier
+            account_id=tax_account.id, # This account was created earlier
             rate=20,
             entity_id=entity.id,
         )
         input_tax = models.Tax(
             name="Input Vat",
             code="INPT",
-            account_id=tax_account.account.id,
+            account_id=tax_account.id,
             rate=10,
             entity_id=entity.id,
         )
         session.add_all([output_tax, input_tax])
         session.commit()
 
-@app.post("/api/create-transaction-and-lineitem-cp")   
-def transaction(payload: schemas.CreateCPTransactionSchema):
+@app.post("/api/create-cash-purchase")   
+def transaction(payload: schemas.CreateCashPurchaseSchema):
     print("hello there!")
     with get_session(engine) as session:
         entity = session.query(models.Entity).filter(models.Entity.name == payload.entity_name).first()
@@ -194,7 +195,7 @@ def transaction(payload: schemas.CreateCPTransactionSchema):
         ).first()
 
         print("bank_account", bank_account)
-        cash_purchase = CashPurchase(
+        cash_purchase = transactions.CashPurchase(
             narration="Cash Purchase Transaction",
             transaction_date=datetime.now(),
             account_id=bank_account.id,
@@ -202,7 +203,6 @@ def transaction(payload: schemas.CreateCPTransactionSchema):
         )
         session.add(cash_purchase)
         session.flush()
-
         cash_purchase_line_item = models.LineItem(
             narration=payload.crop_name,
             account_id=opex_account.id,
@@ -218,7 +218,51 @@ def transaction(payload: schemas.CreateCPTransactionSchema):
         session.add(cash_purchase)
         cash_purchase.post(session)
 
-@app.get("/api/income_statement/{entity_id}")
+@app.post("/api/create-cash-sale")   
+def transaction(payload: schemas.CreateCashSaleSchema):
+    print("hello there!")
+    with get_session(engine) as session:
+        entity = session.query(models.Entity).filter(models.Entity.name == payload.entity_name).first()
+        session.entity = entity
+        print("entity_id", entity.id)
+        bank_account = session.query(models.Account).filter(
+            and_(models.Account.entity_id == entity.id,
+                 models.Account.name == "Bank Account")
+        ).first()
+        revenue_account = session.query(models.Account).filter(
+            and_(models.Account.entity_id == entity.id,
+                 models.Account.name == "Revenue Account")
+        ).first()
+        output_tax = session.query(models.Tax).filter(
+            and_(models.Tax.entity_id == entity.id,
+                 models.Tax.name == "Output Vat")
+        ).first()
+
+        print("bank_account", bank_account)
+        cash_sale = transactions.CashSale(
+            narration="Cash Sale Transaction",
+            transaction_date=datetime.now(),
+            account_id=bank_account.id,
+            entity_id=entity.id,
+        )
+        session.add(cash_sale)
+        session.flush() # Intermediate save does not record the transaction in the Ledger
+
+        cash_sale_line_item = models.LineItem(
+            narration="Cash Sale line item",
+            account_id=revenue_account.id,
+            amount=100,
+            tax_id=output_tax.id,
+            entity_id=entity.id,
+        )
+        session.add(cash_sale_line_item)
+        session.flush()
+
+        cash_sale.line_items.add(cash_sale_line_item)
+        session.add(cash_sale)
+        cash_sale.post(session) # This posts the Transaction to the Ledger
+
+@app.get("/api/income-statement/{entity_id}")
 def income_statement(entity_id: int):
     with get_session(engine) as session:
         entity = session.query(models.Entity).filter(models.Entity.id == entity_id).first()
@@ -226,7 +270,8 @@ def income_statement(entity_id: int):
 
         income_statement = IncomeStatement(session) 
         income_statement_str = str(income_statement)
-        return json.dumps(income_statement_str)
+        print(income_statement)
+        return {"income_statement" : income_statement_str}
 
 if __name__ == "__main__":
     uvicorn.run("index:app", host="127.0.0.1", port=8000, reload=True)

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import React from "react";
+import { HomeIcon } from "@heroicons/react/24/outline";
 
 export default function Navbar() {
   return (
@@ -18,8 +19,9 @@ export default function Navbar() {
           <div className="bg-gray-800 p-4 rounded-lg">
             <Link
               href="/"
-              className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block"
+              className="flex justify-center items-center text-lg hover:text-gray-300 transition-colors duration-300"
             >
+              <HomeIcon className="w-6 mb-1" />
               Home
             </Link>
           </div>
@@ -28,23 +30,7 @@ export default function Navbar() {
               href="/home/create_entity"
               className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block"
             >
-              Add Kisan Name
-            </Link>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <Link
-              href="/home/inventory"
-              className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block"
-            >
-              Inventory
-            </Link>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <Link
-              href="/home/sales"
-              className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block"
-            >
-              Sales
+              Register New Kisan Name
             </Link>
           </div>
           <div className="bg-gray-800 p-4 rounded-lg">
@@ -55,6 +41,22 @@ export default function Navbar() {
               Purchases
             </Link>
           </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <Link
+              href="/home/sales"
+              className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block"
+            >
+              Sales
+            </Link>
+          </div>
+          {/* <div className="bg-gray-800 p-4 rounded-lg">
+            <Link
+              href="/home/inventory"
+              className="text-lg hover:text-gray-300 transition-colors duration-300 text-center block"
+            >
+              Inventory
+            </Link>
+          </div> */}
           <div className="bg-gray-800 p-4 rounded-lg">
             <Link
               href="/home/report"
