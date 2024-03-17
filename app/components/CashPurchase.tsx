@@ -68,7 +68,6 @@ const CashPurchase = () => {
 
   return (
     <>
-      {/* Wrap the navbar and content in a flex container */}
       <div className="flex flex-col md:flex-row min-h-screen">
         {/* Content area */}
         <div className="flex-1 p-4">

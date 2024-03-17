@@ -5,17 +5,15 @@ import { HomeIcon, UserPlusIcon, BanknotesIcon, CurrencyRupeeIcon, BookOpenIcon,
 
 export default function Navbar() {
   return (
-    <div
-      className="fixed top-0 left-0 h-full bg-gray-100 text-white shadow-md z-50 w-1/5"
-    >
+    <div className="flex w-64 top-0 left-0 bg-gray-900 text-white shadow-md z-10 p-4">
       <div className="px-4 py-4 flex flex-col">
-        <div className="mb-8 flex flex-grow items-center justify-center">
-          <h1 className="text-3xl font-bold text-black text-center">
+        <div className="flex-none h-20">
+          <h1 className="text-3xl font-bold text-white text-center">
             DEARmandi
           </h1>
         </div>
-        <nav className="flex flex-col space-y-5">
-          <div className="flex justify-center items-center bg-gray-800 hover:bg-gray-900 p-4 rounded-lg ">
+        <nav className="flex-1 space-y-4">
+          <div className="bg-gray-800 p-4 rounded-lg">
             <Link
               href="/"
               className="flex justify-center items-center text-lg  transition-colors duration-300"
