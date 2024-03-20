@@ -7,12 +7,12 @@ export default function Page() {
   return (
     <>
       <Navbar />
-      <div className="max-w-4xl mx-auto mt-10 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-center mb-6 sm:text-4xl">
+      <div className="flex flex-col max-w-4xl mx-auto mt-10 px-4 sm:px-6 lg:px-8">
+        <h1 className="flex text-3xl justify-center font-bold text-center mb-6 sm:text-4xl">
           Welcome to Our Accounting Services
         </h1>
         <section className="mb-6">
-          <h2 className="text-xl font-semibold mb-2 sm:text-2xl">
+          <h2 className="flex text-xl justify-center font-semibold mb-2 sm:text-2xl">
             Inventory Management
           </h2>
           <p>Efficiently manage your inventory and stock levels.</p>
