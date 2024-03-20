@@ -61,14 +61,13 @@ def create_entity(payload: schemas.CreateEntitySchema):
             
         # If the entity does not exist, create a new one
         entity = models.Entity(name=payload.name)
-        print("creating entity", entity)
         session.add(entity)
         session.commit() # This automatically sets up a Reporting Period for the Entity
 
         currency = models.Currency(name="US Dollars", code="USD", entity_id=entity.id)
         session.add(currency)
         session.commit()
-        return entity
+        return {"id": entity.id, "name": entity.name}
 
 @app.get("/api/get-accounts/{entity_id}")
 def list_accounts(entity_id):

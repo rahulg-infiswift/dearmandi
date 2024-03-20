@@ -4,9 +4,9 @@ import CashSale from "@/app/components/CashSale";
 
 const Sales = () => {
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <Navbar />
-      <div className="flex-grow max-w-4xl mx-auto mt-10 px-4 sm:px-6 lg:px-8">
+      <div className="flex-1 mt-10 px-4">
         <CashSale />
       </div>
     </div>

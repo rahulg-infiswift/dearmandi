@@ -1,14 +1,14 @@
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import Image from "next/image";
-import Navbar from "./components/Navbar";
+import Navbar from "@/app/components/Navbar";
 
 export default function Page() {
   return (
-    <>
+    <div className="flex min-h-screen">
       <Navbar />
-      <div className="flex flex-col max-w-4xl mx-auto mt-10 px-4 sm:px-6 lg:px-8">
-        <h1 className="flex text-3xl justify-center font-bold text-center mb-6 sm:text-4xl">
+      <div className="flex-1 mx-auto mt-10 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-center mb-6 sm:text-4xl">
           Welcome to Our Accounting Services
         </h1>
         <section className="mb-6">
@@ -42,6 +42,6 @@ export default function Page() {
           <p>Find answers to common questions about our accounting services.</p>
         </section>
       </div>
-    </>
+    </div>
   );
 }
