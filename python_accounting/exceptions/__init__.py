@@ -53,7 +53,7 @@ class ClosedReportingPeriodError(AccountingExeption):
 
 
 class DuplicateReportingPeriodError(AccountingExeption):
-    """An Entity can only have one reporting period per calendar year."""
+    """An User can only have one reporting period per calendar year."""
 
     def __init__(self) -> None:
         self.message = "A reporting Period already exists for that calendar year."
@@ -97,7 +97,7 @@ class InvalidBalanceAccountError(AccountingExeption):
 
 class InvalidBalanceDateError(AccountingExeption):
     """
-    Unless the Entity allows for mid year balances, the balance date must be earlier than
+    Unless the User allows for mid year balances, the balance date must be earlier than
     its reporting period's start.
     """
 
@@ -197,11 +197,11 @@ class InvalidTransactionTypeError(AccountingExeption):
         super().__init__()
 
 
-class MissingEntityError(AccountingExeption):
-    """Accounting objects must all be associated with an Entity."""
+class MissingUserError(AccountingExeption):
+    """Accounting objects must all be associated with an User."""
 
     def __init__(self) -> None:
-        self.message = "Accounting objects must have an Entity."
+        self.message = "Accounting objects must have an User."
         super().__init__()
 
 
@@ -224,10 +224,10 @@ class MissingMainAccountAmountError(AccountingExeption):
 
 
 class MissingReportingPeriodError(AccountingExeption):
-    """The Entity does not have a reporting period for the given date."""
+    """The User does not have a reporting period for the given date."""
 
-    def __init__(self, entity, year) -> None:
-        self.message = f"Entity <{entity}> has no reporting period for the year {year}."
+    def __init__(self, user, year) -> None:
+        self.message = f"User <{user}> has no reporting period for the year {year}."
         super().__init__()
 
 
@@ -240,11 +240,11 @@ class MissingTaxAccountError(AccountingExeption):
 
 
 class MultipleOpenPeriodsError(AccountingExeption):
-    """An Entity can only have one reporting period open at a time."""
+    """An User can only have one reporting period open at a time."""
 
     def __init__(self) -> None:
         self.message = (
-            "There can only be one Open Reporting Period per Entity at a time."
+            "There can only be one Open Reporting Period per User at a time."
         )
         super().__init__()
 
@@ -290,11 +290,11 @@ class RedundantTransactionError(AccountingExeption):
         super().__init__()
 
 
-class SessionEntityError(AccountingExeption):
-    """The Session Entity should not be deleted."""
+class SessionUserError(AccountingExeption):
+    """The Session User should not be deleted."""
 
     def __init__(self) -> None:
-        self.message = "Cannot delete the session Entity."
+        self.message = "Cannot delete the session User."
         super().__init__()
 
 

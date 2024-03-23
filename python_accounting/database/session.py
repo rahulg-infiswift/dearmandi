@@ -11,7 +11,7 @@ Provides accounting specific overrides for some sqlalchemy session methods.
 """
 from sqlalchemy.orm.session import Session
 
-from python_accounting.models import Entity
+from python_accounting.models import User
 from python_accounting.database.session_overrides import SessionOverridesMixin
 from python_accounting.database.accounting_functions import AccountingFunctionsMixin
 from python_accounting.database.event_listeners import EventListenersMixin
@@ -24,11 +24,11 @@ class AccountingSession(
     Custom methods specific to accounting.
 
     Attributes:
-        entity (Entity): The Entity currently associated with the session. All database
-            queries will be scoped to this entity.
+        user (User): The User currently associated with the session. All database
+            queries will be scoped to this user.
     """
 
-    entity: Entity
+    user: User
 
     def __init__(self, bind=None, info=None) -> None:
         super().__init__(bind=bind, info=info)

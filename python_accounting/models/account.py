@@ -72,7 +72,7 @@ class Account(IsolatingMixin, Recyclable):
     def _get_account_code(self, session) -> int:
         current_count = (
             session.query(Account)
-            .filter(Account.entity_id == self.entity_id)
+            .filter(Account.user_id == self.user_id)
             .filter(Account.account_type == self.account_type)
             .with_entities(func.count())  # pylint: disable=not-callable
             .scalar()

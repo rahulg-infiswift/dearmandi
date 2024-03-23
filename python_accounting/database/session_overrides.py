@@ -15,8 +15,8 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Mapped
 
-from python_accounting.models import Recycled, Entity, Assignment
-from python_accounting.exceptions import SessionEntityError
+from python_accounting.models import Recycled, User, Assignment
+from python_accounting.exceptions import SessionUserError
 
 
 class SessionOverridesMixin:
@@ -51,7 +51,7 @@ class SessionOverridesMixin:
             True if successful, else False.
 
         Raises:
-            SessionEntityError: If the instance being deleted is the session Entity.
+            SessionUserError: If the instance being deleted is the session User.
         """
 
         if isinstance(instance, Assignment):
@@ -60,14 +60,14 @@ class SessionOverridesMixin:
         if hasattr(instance, "validate_delete"):
             instance.validate_delete(self)
 
-        if isinstance(instance, Entity) and instance.id == self.entity.id:
-            raise SessionEntityError
+        if isinstance(instance, User) and instance.id == self.user.id:
+            raise SessionUserError
         instance.deleted_at = instance.updated_at = datetime.now()
 
         self.add(
             Recycled(
                 recycled_id=instance.id,
-                entity_id=self.entity.id,
+                user_id=self.user.id,
             )
         )
         self.commit()
