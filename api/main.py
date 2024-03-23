@@ -19,13 +19,15 @@ database = config.database
 engine = create_engine(database["url"])
 Base.metadata.create_all(engine) # run migrations to create tables
 
-from  . import token, users, accounts
+from  . import token, users, accounts, customers
 
 app = FastAPI()
 app.include_router(token.router)
 app.include_router(users.router)
 app.include_router(accounts.router)
 app.include_router(utils.router)
+app.include_router(customers.router)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,8 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.post("/api/create_cash_purchase")   
-def transaction(payload: schemas.CreateCashPurchaseSchema, ):
+def transaction(payload: schemas.CreateCashPurchaseSchema):
     print("hello there!")
     with get_session(engine) as session:
         user = session.query(models.User).filter(models.User.name == payload.user_name).first()

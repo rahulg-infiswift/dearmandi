@@ -21,7 +21,7 @@ router = APIRouter(
     tags=["Accounts"] 
 )
 
-@router.get("/self_accounts")
+@router.get("/self_accounts", response_model=List[schemas.GetAccount])
 async def get_accounts(token_user: Annotated[schemas.GetUser, Depends(utils.get_current_user)] ):
     with get_session(engine) as session:
         user = session.query(models.User).filter(models.User.id == token_user.id).first()

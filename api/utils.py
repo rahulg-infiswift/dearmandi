@@ -65,6 +65,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         db_user = session.query(models.User).filter(models.User.email == token_data.email).first()
         if db_user is None:
             raise credentials_exception
-    print(db_user)
+    print("db_user:", db_user)
     return db_user
 
