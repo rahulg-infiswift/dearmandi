@@ -1,32 +1,45 @@
 "use client";
-
-import Navbar from "@/app/components/Navbar";
 import { useState, useEffect } from "react";
-
-interface Entity {
-  id: number;
-  name: string;
-  locale: string;
-}
+import fetchSelfCustomers from "./utils/fetchSelfCustomers";
 
 const CashSale = () => {
   const [formData, setFormData] = useState({
-    entityName: "",
+    customerName: "",
     cropName: "",
     quantity: "",
     amount: "",
   });
-  const [entityNames, setEntityNames] = useState<Entity[]>([]);
+  const [customers, setCustomers] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    // Fetch entity names from the backend
-    const fetchEntityNames = async () => {
-      const response = await fetch("/api/entities");
-      const data = await response.json();
-      console.log(data);
-      setEntityNames(data);
+    const token = localStorage.getItem("token"); // Retrieve the token from local storage
+    console.log(token);
+    if (!token) {
+      console.log("No token found");
+      return;
+    }
+
+    const loadData = async () => {
+      try {
+        const data = await fetchSelfCustomers(token);
+        console.log(data);
+        setCustomers(data);
+        setIsLoading(false);
+      } catch (err) {
+        setError("Failed to fetch data.");
+        setIsLoading(false);
+        console.error(err);
+      }
     };
-    fetchEntityNames();
+
+    loadData();
   }, []);
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -38,13 +51,13 @@ const CashSale = () => {
     e.preventDefault();
     console.log(formData);
     // Create transaction and Line Item for the form data
-    await fetch("/api/create-cash-sale", {
+    await fetch("/api/create_cash_sale", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        entity_name: formData.entityName,
+        customer_name: formData.customerName,
         crop_name: formData.cropName,
         quantity: formData.quantity,
         amount: formData.amount,
@@ -53,7 +66,7 @@ const CashSale = () => {
 
     // Reset form after submission
     setFormData({
-      entityName: "",
+      customerName: "",
       cropName: "",
       quantity: "",
       amount: "",
@@ -81,25 +94,25 @@ const CashSale = () => {
             >
               <div className="w-full max-w-md">
                 <label
-                  htmlFor="entityName"
+                  htmlFor="customerName"
                   className="block font-bold text-xl mb-2"
                 >
-                  Kisan Name
+                  Customer Name
                 </label>
                 <select
-                  name="entityName"
-                  value={formData.entityName}
+                  name="customerName"
+                  value={formData.customerName}
                   onChange={handleChange}
                   className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   // className="mt-1 w-full px-4 py-2 border rounded-md"
                   required
                 >
-                  <option value="">Select an entity</option>
-                  {entityNames
-                    .filter((entity) => entity) // Filter out empty or undefined values
-                    .map((entity) => (
-                      <option key={entity.id} value={entity.name}>
-                        {entity.name}
+                  <option value="">Select customer name</option>
+                  {customers
+                    .filter((customer) => customer) // Filter out empty or undefined values
+                    .map((customer) => (
+                      <option key={customer.id} value={customer.name}>
+                        {customer.name}
                       </option>
                     ))}
                 </select>

@@ -19,7 +19,7 @@ export default function Navbar() {
       <nav className="flex-1 space-y-4">
       <div className="flex justify-center items-center bg-gray-800 hover:bg-gray-900 p-4 rounded-lg ">
           <Link
-            href="/"
+            href="/home"
             className="flex justify-center items-center text-lg hover:text-gray-300 transition-colors duration-300"
           >
             <HomeIcon className="w-6 mb-1 mr-2" />
@@ -28,7 +28,7 @@ export default function Navbar() {
         </div>
         <div className="flex justify-center items-center bg-gray-800 hover:bg-gray-900 p-4 rounded-lg ">
           <Link
-            href="/home/create_entity"
+            href="/home/create_customer"
             className="flex justify-center items-center text-lg hover:text-gray-300 transition-colors duration-300"
           >
             <UserPlusIcon className="w-6 mb-1 mr-2" />
