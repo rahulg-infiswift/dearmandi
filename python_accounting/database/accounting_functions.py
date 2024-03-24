@@ -25,7 +25,7 @@ class AccountingFunctionsMixin:
         return self.scalars(
             select(ReportingPeriod)
             .where(ReportingPeriod.calendar_year == year)
-            .where(ReportingPeriod.entity_id == self.entity.id)
+            .where(ReportingPeriod.user_id == self.user.id)
             .execution_options(ignore_isolation=True)
         ).first()
 
@@ -34,7 +34,7 @@ class AccountingFunctionsMixin:
         existing = self._year_period(year)
 
         if existing:
-            self.entity.reporting_period_id = existing.id
+            self.user.reporting_period_id = existing.id
         else:
             # transission the previous period to adjusting status if one exists
             previous_period = self._year_period(year - 1)
@@ -48,7 +48,7 @@ class AccountingFunctionsMixin:
 
             past_periods = (
                 self.query(ReportingPeriod)
-                .filter(ReportingPeriod.entity_id == self.entity.id)
+                .filter(ReportingPeriod.user_id == self.user.id)
                 .with_entities(func.count())  # pylint: disable=not-callable
                 .execution_options(ignore_isolation=True)
                 .scalar()
@@ -58,10 +58,10 @@ class AccountingFunctionsMixin:
                 ReportingPeriod(
                     calendar_year=year,
                     period_count=past_periods + 1,
-                    entity_id=self.entity.id,
+                    user_id=self.user.id,
                 )
             )
             self.flush()
 
-            self.entity.reporting_period = self._year_period(year)
+            self.user.reporting_period = self._year_period(year)
         self.commit()

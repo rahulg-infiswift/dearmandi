@@ -16,15 +16,15 @@ from sqlalchemy import ForeignKey
 # pylint: disable=too-few-public-methods
 class IsolatingMixin:
     """
-    This class enables isolating by Entity for accounting objects.
+    This class enables isolating by User for accounting objects.
 
     Attributes:
-        entity_id (int): The id of the Entity to which the model belongs.
+        user_id (int): The id of the User to which the model belongs.
     """
 
-    entity_id: Mapped[int] = mapped_column(ForeignKey("entity.id", use_alter=True))
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", use_alter=True))
 
     @declared_attr
-    def entity(self) -> Mapped["Entity"]:
-        """Returns the Entity of the instance."""
-        return relationship("Entity", foreign_keys=[self.entity_id])
+    def user(self) -> Mapped["User"]:
+        """Returns the User of the instance."""
+        return relationship("User", foreign_keys=[self.user_id])

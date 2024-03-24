@@ -1,4 +1,4 @@
-# models/user.py
+# models/entity.py
 # Copyright (C) 2024 - 2028 the PythonAccounting authors and contributors
 # <see AUTHORS file>
 #
@@ -6,23 +6,63 @@
 # the MIT License: https://www.opensource.org/licenses/mit-license.php
 
 """
-Represents an authenicatable User with access to an Entity.
+Represents the person, real or artifial engaging in financial Transactions.
 
 """
+from typing import List
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, Boolean, ForeignKey
+from python_accounting.models import Recyclable, ReportingPeriod
 
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String
-from python_accounting.mixins import IsolatingMixin
-from .base import Base
 
+# pylint: disable=too-few-public-methods
+class User(Recyclable):
+    """Represents the logged-in User."""
 
-class User(IsolatingMixin, Base):
-    """Represents an authenticatable User with access to an Entity."""
+    __mapper_args__ = {"polymorphic_identity": "User"}
 
+    id: Mapped[int] = mapped_column(ForeignKey("recyclable.id"), primary_key=True)
+    """(int): The primary key of the User database record."""
     name: Mapped[str] = mapped_column(String(255))
-    """(str): The name of the User."""
-    email: Mapped[str] = mapped_column(String(255))
-    """(str): A unique email to identify the User."""
+    """(str): The Name of the User."""
+    email: Mapped[str] = mapped_column(String(255), unique=True)
+    password: Mapped[str] = mapped_column(String(255))
+    multi_currency: Mapped[bool] = mapped_column(Boolean, default=False)
+    """
+    (`bool`, optional): Determines if the User can
+    have Transactions in currencies other than its base Currency.
+    Defaults to False.
+    """
+    mid_year_balances: Mapped[bool] = mapped_column(Boolean, default=False)
+    """
+    (`bool`, optional): Determines if the User
+    can have Opening Balances withing the current Reporting Period.
+    Defaults to False.
+    """
+    year_start: Mapped[int] = mapped_column(default=1)
+    """
+    (`int`, optional): The month at which the User's Reporting
+    Periods begin, expressed as a number between 1 and 12. Defaults to 1
+    (January).
+    """
+    locale: Mapped[str] = mapped_column(String(5), default="en_GB")
+    """(str): The language format to be used to represent amounts. Defaults to en_GB."""
+    currency_id: Mapped[int] = mapped_column(ForeignKey("currency.id"), nullable=True)
+    """(`int`, optional): The id of the Reporting Currency of the User."""
+    reporting_period_id: Mapped[int] = mapped_column(
+        ForeignKey("reporting_period.id"), nullable=True
+    )
+    """(`int`, optional): The id of the current Reporting Period of the User."""
+
+    # relationships
+    currency: Mapped["Currency"] = relationship(foreign_keys=[currency_id])
+    """(Currency): The Reporting Currency of the User."""
+    reporting_period: Mapped["ReportingPeriod"] = relationship(
+        foreign_keys=[reporting_period_id]
+    )
+    """(ReportingPeriod): The current Reporting Period of the User."""
+    users: Mapped[List["Customer"]] = relationship(back_populates="user")
+    """(`list` of User): A list of Users that belong to the User."""
 
     def __repr__(self) -> str:
-        return f"{self.name} <{self.email}>"
+        return self.name

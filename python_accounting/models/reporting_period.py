@@ -6,7 +6,7 @@
 # the MIT License: https://www.opensource.org/licenses/mit-license.php
 
 """
-Represents a financial cycle of an Entity.
+Represents a financial cycle of an User.
 
 """
 from enum import Enum
@@ -24,12 +24,12 @@ from python_accounting.models import Recyclable
 
 
 class ReportingPeriod(IsolatingMixin, Recyclable):
-    """Represents a financial cycle for the Reporting Entity."""
+    """Represents a financial cycle for the Reporting User."""
 
     __tablename__ = "reporting_period"
     __table_args__ = (
-        UniqueConstraint("calendar_year", "entity_id"),
-        UniqueConstraint("period_count", "entity_id"),
+        UniqueConstraint("calendar_year", "user_id"),
+        UniqueConstraint("period_count", "user_id"),
     )
 
     class Status(Enum):
@@ -60,14 +60,14 @@ class ReportingPeriod(IsolatingMixin, Recyclable):
         return f"{self.calendar_year} <Period {self.period_count}>"
 
     @staticmethod
-    def date_year(date: datetime = None, entity=None) -> int:
+    def date_year(date: datetime = None, user=None) -> int:
         """
         Returns the calendar year for the given date.
 
         Args:
             date (`datetime`, optional): The date whose calendar year is
                 to be found. Defaults to the current date.
-            entity (`int`, optional): The Entity for whom the calendar year
+            user (`int`, optional): The User for whom the calendar year
                 is to be found. If absent, defaults to the calendar year.
 
         Returns:
@@ -75,11 +75,11 @@ class ReportingPeriod(IsolatingMixin, Recyclable):
         """
 
         today = datetime.today()
-        if not entity:
+        if not user:
             return today.year
 
         month, year = (date.month, date.year) if date else (today.month, today.year)
-        return year if month >= entity.year_start else year - 1
+        return year if month >= user.year_start else year - 1
 
     @staticmethod
     def get_period(session, date: datetime) -> "ReportingPeriod":
@@ -100,18 +100,18 @@ class ReportingPeriod(IsolatingMixin, Recyclable):
 
         """
 
-        year = ReportingPeriod.date_year(date, session.entity)
+        year = ReportingPeriod.date_year(date, session.user)
 
         periods = session.scalars(
             select(ReportingPeriod)
             .where(ReportingPeriod.calendar_year == year)
-            .where(ReportingPeriod.entity_id == session.entity.id)
+            .where(ReportingPeriod.user_id == session.user.id)
         )
 
         try:
             return next(periods)
         except StopIteration as exc:
-            raise MissingReportingPeriodError(session.entity, year) from exc
+            raise MissingReportingPeriodError(session.user, year) from exc
 
     def validate(self, session) -> None:
         """
@@ -133,7 +133,7 @@ class ReportingPeriod(IsolatingMixin, Recyclable):
         if self.id is None:
             if (
                 session.query(ReportingPeriod)
-                .filter(ReportingPeriod.entity_id == self.entity_id)
+                .filter(ReportingPeriod.user_id == self.user_id)
                 .filter(ReportingPeriod.calendar_year == self.calendar_year)
                 .with_entities(func.count())  # pylint: disable=not-callable
                 .execution_options(ignore_isolation=True)
@@ -143,7 +143,7 @@ class ReportingPeriod(IsolatingMixin, Recyclable):
 
             if (
                 session.query(ReportingPeriod)
-                .filter(ReportingPeriod.entity_id == self.entity_id)
+                .filter(ReportingPeriod.user_id == self.user_id)
                 .filter(ReportingPeriod.status == ReportingPeriod.Status.OPEN)
                 .with_entities(func.count())  # pylint: disable=not-callable
                 .execution_options(ignore_isolation=True)
@@ -171,11 +171,11 @@ class ReportingPeriod(IsolatingMixin, Recyclable):
 
         """
         year = (
-            ReportingPeriod.date_year(date, self.entity) if date else self.calendar_year
+            ReportingPeriod.date_year(date, self.user) if date else self.calendar_year
         )
         start = datetime(
             year,
-            self.entity.year_start,  # pylint: disable=no-member
+            self.user.year_start,  # pylint: disable=no-member
             1,
             0,
             0,

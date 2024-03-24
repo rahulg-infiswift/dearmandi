@@ -1,26 +1,59 @@
-from pydantic import BaseModel
+from datetime import datetime
+import random
+from pydantic import BaseModel, EmailStr
 
-class CreateEntitySchema(BaseModel):
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: str | None = None
+
+class CreateUser(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+class GetUser(BaseModel):
+    id: int
+    name: str
+    email: str
+    created_at: datetime
+
+class CreateCustomer(BaseModel):
+    name: str
+    email: EmailStr
+
+class GetCustomer(BaseModel):
+    id: int
     name: str
 
-class CreateAccountsSchema(BaseModel):
-    entity_id : int
+class UserLogin(BaseModel):
+    username: EmailStr
+    password: str
+
+class GetAccount(BaseModel):
+    id: int
+    name: str
+    description: str | None
+    
 
 class CreateTaxAccountsSchema(BaseModel):
-    entity_id : int
+    customer_id : int
 
 class CreateTransactionSchema(BaseModel):
-    entity_id: int
+    customer_id: int
     amount: int
 
 class CreateCashPurchaseSchema(BaseModel):
-    entity_name: str
+    customer_name: str
     crop_name: str
     quantity: int
     amount: int
 
 class CreateCashSaleSchema(BaseModel):
-    entity_name: str
+    customer_name: str
     crop_name: str
     quantity: int
     amount: int

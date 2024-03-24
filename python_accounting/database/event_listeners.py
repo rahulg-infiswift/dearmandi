@@ -15,9 +15,9 @@ from datetime import datetime
 from sqlalchemy.orm.session import Session
 from sqlalchemy import event, orm, and_, update
 
-from python_accounting.models import Entity, Recyclable, Transaction, Account, Ledger
+from python_accounting.models import User, Recyclable, Transaction, Account, Ledger
 from python_accounting.mixins import IsolatingMixin
-from python_accounting.exceptions import MissingEntityError
+from python_accounting.exceptions import MissingUserError
 
 
 def _filter_options(execute_state, option) -> bool:
@@ -54,33 +54,33 @@ class EventListenersMixin:
                 )
             )
 
-        # Entity filter
+        # User filter
         if (
             _filter_options(execute_state, "ignore_isolation")
-            and execute_state.statement.column_descriptions[0]["type"] is not Entity
+            and execute_state.statement.column_descriptions[0]["type"] is not User
         ):
-            session_entity_id = execute_state.session.entity.id
+            session_user_id = execute_state.session.user.id
             execute_state.statement = execute_state.statement.options(
                 orm.with_loader_criteria(
                     IsolatingMixin,
-                    lambda cls: cls.entity_id == session_entity_id,
+                    lambda cls: cls.user_id == session_user_id,
                     include_aliases=True,
                 )
             )
 
     @event.listens_for(Session, "transient_to_pending")
-    def _set_session_entity(self, object_) -> None:
-        if not hasattr(self, "entity") or self.entity is None:
-            if isinstance(object_, Entity):
-                self.entity = object_
-            elif object_.entity_id is None:
-                raise MissingEntityError
+    def _set_session_user(self, object_) -> None:
+        if not hasattr(self, "user") or self.user is None:
+            if isinstance(object_, User):
+                self.user = object_
+            elif object_.user_id is None:
+                raise MissingUserError
             else:
-                self.entity = self.get(Entity, object_.entity_id)
+                self.user = self.get(User, object_.user_id)
 
         if (
-            self.entity.reporting_period is None
-            or self.entity.reporting_period.calendar_year != datetime.today().year
+            self.user.reporting_period is None
+            or self.user.reporting_period.calendar_year != datetime.today().year
         ):
             self._set_reporting_period()
 

@@ -48,7 +48,7 @@ class Transaction(IsolatingMixin, Recyclable):
     )
     """(StrEnum): Transaction Types representing standard source document Transactions."""
 
-    __table_args__ = (UniqueConstraint("transaction_no", "entity_id"),)
+    __table_args__ = (UniqueConstraint("transaction_no", "user_id"),)
     __tablename__ = "transaction"
     __mapper_args__ = {
         "polymorphic_identity": "Transaction",
@@ -212,7 +212,7 @@ class Transaction(IsolatingMixin, Recyclable):
             .filter(Transaction.transaction_date > reporting_period.interval()["start"])
             .with_entities(func.count())  # pylint: disable=not-callable
             .execution_options(include_deleted=True)
-            .filter(Transaction.entity_id == self.entity_id)
+            .filter(Transaction.user_id == self.user_id)
             .scalar()
         ) + getattr(self, "session_index", 1)
 
@@ -270,7 +270,7 @@ class Transaction(IsolatingMixin, Recyclable):
             session.query(
                 func.sum(Ledger.amount).label("amount")  # pylint: disable=not-callable
             )
-            .filter(Ledger.entity_id == self.entity_id)
+            .filter(Ledger.user_id == self.user_id)
             .filter(Ledger.transaction_id == self.id)
             .filter(Ledger.currency_id == self.currency_id)
             .filter(Ledger.post_account_id == account.id)
