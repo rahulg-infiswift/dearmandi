@@ -1,7 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import Image from "next/image";
-import Navbar from "@/app/components/Navbar";
 
 export default function Page() {
   return (

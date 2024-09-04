@@ -1,10 +1,10 @@
 import React from 'react'
-import Navbar from "@/app/components/Navbar";
+import Sidebar from '../components/Sidebar'
 
 function layout() {
   return (
     <div>
-      <Navbar />
+      <Sidebar />
     </div>
   )
 }

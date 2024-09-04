@@ -1,9 +1,7 @@
-import Navbar from "@/app/components/Navbar";
 import Layout from "../../layout";
 
 const FAQs = () => (
   <div className="flex min-h-screen">
-    <Navbar />
     <div className="flex-1 p-4 justify-center text-center">
       <h1 className="text-3xl font-bold mb-6">FAQs</h1>
       <div className="space-y-4">
