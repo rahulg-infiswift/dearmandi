@@ -40,7 +40,7 @@ const GetSelfCustomers: React.FC = () => {
   console.log(customers);
   return (
     <div>
-      <h2>Accounts List</h2>
+      <h2>Customers List</h2>
       <ul>
         {customers.map((customer) => (
           <li key={customer.id}>{customer.name}</li>

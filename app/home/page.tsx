@@ -6,7 +6,6 @@ import Navbar from "@/app/components/Navbar";
 export default function Page() {
   return (
     <div className="flex min-h-screen">
-      <Navbar />
       <div className="flex-1 mx-auto mt-10 px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-center mb-6 sm:text-4xl">
           Welcome to Our Accounting Services

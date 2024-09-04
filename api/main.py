@@ -4,6 +4,7 @@ from typing import Annotated, List
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import uvicorn
 
 from sqlalchemy import and_, select
@@ -37,6 +38,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class SignInData(BaseModel):
+    email: str
+    password: str
+
+@app.post("/api/signin")
+def signin(data: SignInData):
+    print("Hello from signin")
+    # Handle sign-in logic here
+    if data.email == "test@example.com" and data.password == "password":
+        return {"message": "Login successful"}
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @app.post("/api/create_cash_purchase")   
 def transaction(payload: schemas.CreateCashPurchaseSchema):
