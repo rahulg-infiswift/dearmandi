@@ -7,12 +7,13 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import and_, select
 from sqlalchemy import create_engine
 
+from api.schemas import schemas
 from python_accounting.models import Base
 from python_accounting.database.session import get_session
-from python_accounting import models, schemas, transactions
+from python_accounting import models, transactions
 from python_accounting.reports import IncomeStatement
 from python_accounting.config import config
-from api import utils
+from src.api import utils
 database = config.database
 engine = create_engine(database["url"])
 
@@ -106,7 +107,7 @@ def create_tax_accounts(token_user: Annotated[schemas.GetUser, Depends(utils.get
         session.user = user
         tax_account = session.query(models.Account).filter(
             and_(models.Account.user_id == user.id,
-                 models.Account.name == "Tax Account")
+                models.Account.name == "Tax Account")
         ).first()
 
         output_tax = models.Tax(

@@ -10,17 +10,19 @@ import uvicorn
 from sqlalchemy import and_, select
 from sqlalchemy import create_engine
 
+from api.schemas import schemas
+from .routes import users
 from python_accounting.models import Base
 from python_accounting.database.session import get_session
-from python_accounting import models, schemas, transactions
+from python_accounting import models, transactions
 from python_accounting.reports import IncomeStatement
 from python_accounting.config import config
-from api import utils
+from src.api import utils
 database = config.database
 engine = create_engine(database["url"])
 Base.metadata.create_all(engine) # run migrations to create tables
 
-from  . import token, users, accounts, customers
+from  . import token, accounts, customers
 
 app = FastAPI()
 app.include_router(token.router)
@@ -103,7 +105,7 @@ def transaction(payload: schemas.CreateCashSaleSchema):
         print("user_id", user.id)
         bank_account = session.query(models.Account).filter(
             and_(models.Account.user_id == user.id,
-                 models.Account.name == "Bank Account")
+                models.Account.name == "Bank Account")
         ).first()
         revenue_account = session.query(models.Account).filter(
             and_(models.Account.user_id == user.id,

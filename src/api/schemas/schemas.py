@@ -1,5 +1,3 @@
-from datetime import datetime
-import random
 from pydantic import BaseModel, EmailStr
 
 
@@ -9,17 +7,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: str | None = None
-
-class CreateUser(BaseModel):
-    name: str
-    email: EmailStr
-    password: str
-
-class GetUser(BaseModel):
-    id: int
-    name: str
-    email: str
-    created_at: datetime
 
 class CreateCustomer(BaseModel):
     name: str
