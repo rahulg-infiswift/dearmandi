@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 import jwt
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
@@ -10,12 +11,27 @@ from passlib.context import CryptContext
 from ..schemas.user_schema import User, UserInDB, SignUpUser
 from ..schemas.token_schema import Token, TokenData
 from ..database import get_user_collection
+from ..config import settings
 
 # to get a string like this run:
 # openssl rand -hex 32
-SECRET_KEY = "0490bdeaed7abb6330a07c0d4e98bbc8f7dfcc142cb08f50aee9dbc26fb7db6c"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 300
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+# Email Authentication
+conf = ConnectionConfig(
+    MAIL_USERNAME=settings.MAIL_USERNAME,
+    MAIL_PASSWORD=settings.MAIL_PASSWORD,
+    MAIL_FROM=settings.MAIL_FROM,
+    MAIL_PORT=settings.MAIL_PORT,
+    MAIL_SERVER=settings.MAIL_SERVER,
+    MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
+    MAIL_STARTTLS=settings.MAIL_STARTTLS,
+    MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
+    USE_CREDENTIALS=settings.USE_CREDENTIALS,
+    VALIDATE_CERTS=settings.VALIDATE_CERTS,
+    TEMPLATE_FOLDER='src/api/email_templates'
+)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -40,6 +56,11 @@ async def authenticate_user(user_collection, username: str, password: str):
     user = await get_user(user_collection, username)
     if not user:
         return False
+    if not user.is_verified:  # Check if the user is verified
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Please verify your email before logging in"
+        )
     if not verify_password(password, user.hashed_password):
         return False
     return user
@@ -77,11 +98,11 @@ async def get_current_user(
         raise credentials_exception
     return user
 
-async def get_current_active_user(
+async def get_current_verified_user(
     current_user: Annotated[UserInDB, Depends(get_current_user)],
 ):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
+    if current_user.is_verified:
+        raise HTTPException(status_code=400, detail="Email not verified")
     return User(**current_user.model_dump())
 
 # Login and generate token
@@ -103,7 +124,50 @@ async def login_for_access_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
-# Register new user
+# Email Verification
+def create_verification_token(email: str):
+    expire = datetime.now(timezone.utc) + timedelta(hours=1)  # Token valid for 1 hour
+    to_encode = {"sub": email, "exp": expire}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
+
+async def send_verification_email(email: str, token: str):
+    verification_link = f"http://localhost:8000/api/auth/verify-email?token={token}"
+    message = MessageSchema(
+        subject="Verify your Email",
+        recipients=[email],  # List of recipients
+        template_body={"verification_link": verification_link},  # Using a Jinja template
+        subtype="html"
+    )
+
+    fm = FastMail(conf)
+    await fm.send_message(message, template_name="verification_email.html")
+
+@router.get("/verify-email")
+async def verify_email(token: str, user_collection=Depends(get_user_collection)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate token",
+    )
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except InvalidTokenError:
+        raise credentials_exception
+
+    # Find the user in the database and verify them
+    user = await user_collection.find_one({"email": email})
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    # Mark the user as verified
+    await user_collection.update_one({"email": email}, {"$set": {"is_verified": True}})
+
+    return {"message": "Email verified successfully"}
+
+# Register new user and send verification email
 @router.post("/register/", status_code=status.HTTP_201_CREATED)
 async def register_user(user: SignUpUser, user_collection=Depends(get_user_collection)):
     existing_user = await user_collection.find_one({"username": user.username})
@@ -113,10 +177,14 @@ async def register_user(user: SignUpUser, user_collection=Depends(get_user_colle
     # Hash the user's password
     hashed_password = get_password_hash(user.password.get_secret_value())
     
+    # Create a new user and store in the database (with is_verified=False initially)
     user_dict = user.model_dump(exclude={"password"})
     new_user = UserInDB(**user_dict, hashed_password=hashed_password)
     await user_collection.insert_one(new_user.model_dump())
-    return {
-        "message": "User registered successfully",
-        "user": new_user.model_dump(exclude={"hashed_password"})  # Exclude the hashed_password
-    }
+    
+    # Create a verification token and send verification email
+    verification_token = create_verification_token(user.email)
+    await send_verification_email(user.email, verification_token)
+
+    return {"message": "User registered successfully, please verify your email"}
+

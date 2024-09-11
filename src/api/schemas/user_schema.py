@@ -4,10 +4,10 @@ class User(BaseModel):
     username: str
     email: EmailStr | None = None
     full_name: str | None = None
-    disabled: bool | None = False
 
 class UserInDB(User):
     hashed_password: str
+    is_verified: bool = False
 
 class SignUpUser(User):
     password: SecretStr

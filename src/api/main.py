@@ -27,6 +27,4 @@ app.include_router(user.router, prefix="/api/users", tags=["Users"])
 
 @app.get("/", tags=["Root"])
 async def read_root():
-    return {"Hello": "Dearmandi"}
-
-
+    return {"Hello": "Dearmandi !!!"}
