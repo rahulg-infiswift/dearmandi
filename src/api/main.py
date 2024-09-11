@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-from .routes import users, todos
+from .routes import auth, todo, user
 from .controllers import todo_controller
 from .database import (
     check_mongodb_connection,
@@ -20,11 +20,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(users.router, prefix="/api/users", tags=["Users"])
-app.include_router(todos.router, prefix="/api/todo", tags=["Todo"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(todo.router, prefix="/api/todos", tags=["Todos"])
+app.include_router(user.router, prefix="/api/users", tags=["Users"])
 
 
-@app.get("/")
+@app.get("/", tags=["Root"])
 async def read_root():
     return {"Hello": "Dearmandi"}
 
