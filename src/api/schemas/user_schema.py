@@ -1,9 +1,9 @@
 from pydantic import BaseModel, EmailStr, SecretStr
 
 class User(BaseModel):
-    username: str
+    firstname: str
+    lastname: str
     email: EmailStr | None = None
-    full_name: str | None = None
 
 class UserInDB(User):
     hashed_password: str

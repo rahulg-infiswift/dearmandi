@@ -1,12 +1,10 @@
 import os
 from fastapi import Depends, HTTPException
 import motor.motor_asyncio
-from dotenv import load_dotenv
-
-load_dotenv()
+from .config import settings
 
 # Create a new client and connect to the server
-client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URL"])
+client = motor.motor_asyncio.AsyncIOMotorClient(settings.MONGODB_URL)
 
 async def check_mongodb_connection():
     try:
@@ -25,7 +23,7 @@ async def close_mongodb_connection():
 
 # Database connection
 def get_db():
-    db = client.get_database(os.environ["DATABASE"])
+    db = client.get_database(settings.DATABASE)
     return db
 
 # Dependency to get the user collection

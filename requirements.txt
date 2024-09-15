@@ -1,10 +1,9 @@
 toml
 python-dateutil
 uvicorn[standard]
-sqlalchemy
+# sqlalchemy
 fastapi
 strenum
-psycopg2
 python-jose[cryptography]
 python-multipart
 passlib
