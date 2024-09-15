@@ -1,9 +1,9 @@
+import { SignupPage } from "@/components/SignupPage";
 import React from "react";
-import SignupPage from "../../components/SignupPage";
 
 const page = () => {
   return (
-    <div>
+    <div className="h-screen flex justify-center items-center">
       <SignupPage />
     </div>
   );

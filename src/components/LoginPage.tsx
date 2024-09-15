@@ -13,48 +13,51 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import axios from "axios";
 
 export const description =
   "A login form with email and password. There's an option to login with Google and a link to sign up if you don't have an account.";
 
-export function LoginForm() {
-  // State variables to store user input
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // For error handling
-  const router = useRouter(); // Initialize the useRouter hook
+export function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState(""); // To display success or error messages
+  const router = useRouter(); // For navigation after successful login
 
-  // Function to handle form submission
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent the default form submission behavior
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault(); // Prevent the default form submission
+
+    const params = new URLSearchParams({
+      username: email, // OAuth2PasswordRequestForm expects 'username' as the key, not 'email'
+      password: password,
+    });
 
     try {
-      const response = await fetch("http://localhost:8000/api/signin", {
-        method: "POST",
+      const response = await axios.post("/api/auth/token", params, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded", // Set the correct content type
         },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
       });
 
-      if (response.ok) {
-        // Handle successful response
-        const data = await response.json();
-        console.log("Login successful:", data);
-        // Redirect or update UI as needed
-        // Redirect to the main page ("/") after successful login
-        router.push("/dashboard");
+      // If the login is successful, store the token and navigate to the home page
+      const { access_token } = response.data;
+      localStorage.setItem("token", access_token); // Store the token in localStorage (or use cookies if needed)
+      setMessage("Login successful!");
+
+      // Redirect the user to the dashboard or home page after successful login
+      router.push("/dashboard");
+    } catch (error: any) {
+      console.log(error.response);
+      if (error.response && error.response.status === 401) {
+        // If the status is 401 Unauthorized, display a specific message
+        setMessage("Invalid email or password. Please try again.");
+      } else if (error.response && error.response.status === 403) {
+        // Handle unverified email
+        setMessage("Your email is not verified. Please check your inbox.");
       } else {
-        // Handle error response
-        console.error("Login failed");
-        setErrorMessage("Invalid email or password");
+        // For other errors, display a generic error message
+        setMessage("Login failed. Please check your credentials.");
       }
-    } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage("Something went wrong. Please try again.");
     }
   };
 
@@ -74,7 +77,7 @@ export function LoginForm() {
               <Input
                 id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="rahulgarg@example.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -106,9 +109,12 @@ export function LoginForm() {
             </Button>
           </div>
         </form>
+        {message && (
+          <div className="mt-4 text-center text-sm text-red-500">{message}</div>
+        )}
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
-          <Link href="#" className="underline">
+          <Link href="/signup" className="underline">
             Sign up
           </Link>
         </div>

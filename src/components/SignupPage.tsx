@@ -1,149 +1,119 @@
 "use client";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import signupFunction from "./signupFunction";
 
-const SignupPage = () => {
-  const [name, setName] = useState("");
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import axios, { AxiosError } from "axios";
+
+export const description =
+  "A sign up form with first name, last name, email and password inside a card. There's an option to sign up with GitHub and a link to login if you already have an account";
+
+export function SignupPage() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
+  const [message, setMessage] = useState("");
 
-  const router = useRouter(); // Initialize the useRouter hook
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== repeatPassword) {
-      alert("Passwords do not match");
-      return;
-    }
+
     try {
-      const user = await signupFunction(name, email, password);
-      if (user) {
-        console.log("User created successfully:", user);
-        router.push("/login");
-      }
+      const response = await axios.post("/api/auth/register/", {
+        firstname: firstName,
+        lastname: lastName,
+        email: email,
+        password: password,
+      });
+
+      setMessage(response.data.message);
     } catch (error: any) {
-      console.error(error.message);
+      setMessage(
+        error.response?.data?.detail || "Error occurred during signup"
+      );
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-        </div>
-        <form
-          onSubmit={handleSubmit}
-          className="mt-8 space-y-6"
-          action="#"
-          method="POST"
-        >
-          {/* Separate divs for each input field to apply margins */}
-          <div className="space-y-4">
-            {" "}
-            {/* Adjusted spacing for the entire form */}
-            <div className="rounded-md shadow-sm">
-              {" "}
-              {/* Individual box */}
-              <label htmlFor="name" className="sr-only">
-                Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+    <Card className="mx-auto max-w-sm">
+      <CardHeader>
+        <CardTitle className="text-xl">Sign Up</CardTitle>
+        {message && <p className="mb-4 text-red-500">{message}</p>}
+        <CardDescription>
+          Enter your information to create an account
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="first-name">First name</Label>
+                <Input
+                  id="first-name"
+                  placeholder="Rahul"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="last-name">Last name</Label>
+                <Input
+                  id="last-name"
+                  placeholder="Garg"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </div>
             </div>
-            <div className="rounded-md shadow-sm">
-              {" "}
-              {/* Individual box */}
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
                 id="email"
-                name="email"
                 type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Email address"
+                placeholder="rahulgarg@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
-            <div className="rounded-md shadow-sm">
-              {" "}
-              {/* Individual box */}
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
                 id="password"
-                name="password"
                 type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="rounded-md shadow-sm">
-              {" "}
-              {/* Individual box */}
-              <label htmlFor="password" className="sr-only">
-                Repeat Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
                 required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Repeat Password"
-                value={repeatPassword}
-                onChange={(e) => setRepeatPassword(e.target.value)}
               />
             </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Sign up
-            </button>
+            <Button type="submit" className="w-full">
+              Create an account
+            </Button>
+            <Button variant="outline" className="w-full">
+              Sign up with GitHub
+            </Button>
           </div>
         </form>
-        <div className="text-center">
-          <p className="mt-2 text-sm text-gray-600">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              Sign in
-            </Link>
-          </p>
+        <div className="mt-4 text-center text-sm">
+          Already have an account?{" "}
+          <Link href="/" className="underline">
+            Sign in
+          </Link>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
-};
-
-export default SignupPage;
+}

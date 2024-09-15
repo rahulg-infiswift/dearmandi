@@ -1,10 +1,9 @@
+import { LoginPage } from "@/components/LoginPage";
 import React from "react";
-import LoginPage from "../../components/LoginPage";
-import { SignInThree } from "../../components/SignInPage";
 
 const page = () => {
   return (
-    <div>
+    <div className="h-screen flex justify-center items-center">
       <LoginPage />
     </div>
   );

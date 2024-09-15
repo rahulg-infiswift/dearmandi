@@ -31,11 +31,24 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useRouter } from "next/navigation"
 
 export const description =
   "A products dashboard with a sidebar navigation and a main content area. The dashboard has a header with a search input and a user menu. The sidebar has a logo, navigation links, and a card with a call to action. The main content area shows an empty state with a call to action."
 
-export function Dashboard() {
+export function DashboardPage() {
+  const router = useRouter();
+
+  // Logout function
+  const handleLogout = () => {
+    // Remove the token from localStorage
+    localStorage.removeItem("token");
+
+    // Redirect to login page
+    router.push("/login");
+  };
+
+  
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -214,7 +227,7 @@ export function Dashboard() {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
