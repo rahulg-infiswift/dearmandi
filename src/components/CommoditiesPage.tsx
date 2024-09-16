@@ -1,4 +1,3 @@
-// app/home/commodities/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -25,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 interface Commodity {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   created_at: string;
@@ -57,6 +56,7 @@ export default function CommoditiesPage() {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("response", response);
       setCommodities(response.data);
     } catch (error) {
       console.error("Error fetching commodities:", error);
@@ -66,7 +66,7 @@ export default function CommoditiesPage() {
   const handleAddCommodity = async () => {
     try {
       console.log(newCommodity)
-      await axios.post("/api/commodities/create", newCommodity, {
+      await axios.post("/api/commodities", newCommodity, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -83,7 +83,7 @@ export default function CommoditiesPage() {
     if (!editingCommodity) return;
     try {
       await axios.put(
-        `/api/commodities/${editingCommodity.id}`,
+        `/api/commodities/${editingCommodity._id}`,
         {
           name: editingCommodity.name,
           description: editingCommodity.description,
@@ -101,9 +101,9 @@ export default function CommoditiesPage() {
     }
   };
 
-  const handleDeleteCommodity = async (id: string) => {
+  const handleDeleteCommodity = async (_id: string) => {
     try {
-      await axios.delete(`/api/commodities/${id}`, {
+      await axios.delete(`/api/commodities/${_id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -178,7 +178,7 @@ export default function CommoditiesPage() {
             </TableHeader>
             <TableBody>
               {commodities.map((commodity) => (
-                <TableRow key={commodity.id}>
+                <TableRow key={commodity._id}>
                   <TableCell>{commodity.name}</TableCell>
                   <TableCell>{commodity.description}</TableCell>
                   <TableCell>
@@ -194,7 +194,7 @@ export default function CommoditiesPage() {
                         variant="outline"
                         size="icon"
                         className="ml-2"
-                        onClick={() => handleDeleteCommodity(commodity.id)}
+                        onClick={() => handleDeleteCommodity(commodity._id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

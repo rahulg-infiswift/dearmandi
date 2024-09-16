@@ -11,7 +11,7 @@ export default function Home() {
 
     if (token) {
       // Redirect to dashboard if authenticated
-      router.push("/dashboard");
+      router.push("/home");
     } else {
       // Redirect to login if not authenticated
       router.push("/login");

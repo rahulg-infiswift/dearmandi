@@ -12,16 +12,18 @@ from .auth import get_current_verified_user
 
 router = APIRouter()
 
-@router.post("/create", response_model=CommodityInDB)
+@router.post("", response_model=CommodityInDB)
 async def create_commodity(
     commodity: CommodityCreate,
-    # current_user=Depends(get_current_verified_user),
+    current_user=Depends(get_current_verified_user),
     commodity_collection=Depends(get_commodity_collection),
 ):
+    print("posting commodity", commodity)
     existing_commodity = await commodity_collection.find_one({"name": commodity.name})
     if existing_commodity:
         raise HTTPException(status_code=400, detail="Commodity already registered")
 
+    print("existing_commodity", existing_commodity)
     commodity_dict = commodity.model_dump()
     result = await commodity_collection.insert_one(commodity_dict)
 
@@ -29,11 +31,12 @@ async def create_commodity(
     new_commodity = await commodity_collection.find_one({"_id": result.inserted_id})
     return CommodityInDB(**new_commodity)
 
-@router.get("/", response_model=List[CommodityInDB])
+@router.get("", response_model=List[CommodityInDB])
 async def list_commodities(
     current_user=Depends(get_current_verified_user),
     commodity_collection=Depends(get_commodity_collection),
 ):
+    print("fetching all commodities")
     commodities_cursor = commodity_collection.find()
     commodities = await commodities_cursor.to_list(length=None)
     return [CommodityInDB(**commodity) for commodity in commodities]
@@ -79,6 +82,7 @@ async def delete_commodity(
     current_user=Depends(get_current_verified_user),
     commodity_collection=Depends(get_commodity_collection),
 ):
+    print("deleting commodity", commodity_id)
     if not ObjectId.is_valid(commodity_id):
         raise HTTPException(status_code=400, detail="Invalid commodity ID")
     delete_result = await commodity_collection.delete_one({"_id": ObjectId(commodity_id)})
