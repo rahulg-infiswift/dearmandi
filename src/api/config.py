@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     DATABASE: str
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 300
+    BASE_URL: str
 
     class Config:
         env_file = ".env"

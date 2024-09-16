@@ -33,3 +33,12 @@ async def get_user_collection(db=Depends(get_db)):
 # Dependency to get the todo collection
 async def get_todo_collection(db=Depends(get_db)):
     return db.get_collection("todos")
+
+async def get_commodity_collection(db=Depends(get_db)):
+    return db.get_collection("commodities")
+
+async def get_transaction_collection(db=Depends(get_db)):
+    return db.get_collection("transactions")
+
+async def get_counterparty_collection(db=Depends(get_db)):
+    return db.get_collection("counterparties")

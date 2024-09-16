@@ -5,10 +5,10 @@ import jwt
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from passlib.context import CryptContext
 
-from ..schemas.user_schema import User, UserInDB, SignUpUser
+from ..schemas.user_schema import UserCreate, UserInDB, UserPublic
 from ..schemas.token_schema import Token, TokenData
 from ..database import get_user_collection
 from ..config import settings
@@ -52,33 +52,28 @@ async def get_user(user_collection, email: str):
     if user_dict:
         return UserInDB(**user_dict)
 
-async def authenticate_user(user_collection, email: str, password: str):
+async def authenticate_user(user_collection, email: str, password: str) -> UserInDB:
     user = await get_user(user_collection, email)
     if not user:
         return False
-    if not user.is_verified:  # Check if the user is verified
+    if not verify_password(password, user.hashed_password):
+        return False
+    if not user.is_verified:  # Check if the user email is verified
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Please verify your email before logging in"
         )
-    if not verify_password(password, user.hashed_password):
-        return False
     return user
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict):
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)], 
     user_collection=Depends(get_user_collection)
-):
+) -> UserInDB:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -90,7 +85,13 @@ async def get_current_user(
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-        token_data = TokenData(email==email)
+        token_data = TokenData(email=email)
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     except InvalidTokenError:
         raise credentials_exception
     user = await get_user(user_collection, email=token_data.email)
@@ -103,7 +104,7 @@ async def get_current_verified_user(
 ):
     if not current_user.is_verified:
         raise HTTPException(status_code=400, detail="Email not verified")
-    return User(**current_user.model_dump())
+    return UserInDB(**current_user.model_dump())
 
 # Login and generate token
 @router.post("/token", response_model=Token)
@@ -120,20 +121,15 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    return Token(access_token=access_token, token_type="bearer")
+    expires_at = datetime.now(timezone.utc) + access_token_expires
+    to_encode={"sub": user.email, "exp": expires_at}
+    access_token = create_access_token(to_encode)
 
-# Email Verification
-def create_verification_token(email: str):
-    expire = datetime.now(timezone.utc) + timedelta(hours=1)  # Token valid for 1 hour
-    to_encode = {"sub": email, "exp": expire}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    return Token(access_token=access_token, token_type="bearer", expires_at=expires_at)
+
 
 async def send_verification_email(email: str, token: str):
-    verification_link = f"http://localhost:8000/api/auth/verify-email?token={token}"
+    verification_link = f"{settings.BASE_URL}/api/auth/verify-email?token={token}"
     message = MessageSchema(
         subject="Verify your Email",
         recipients=[email],  # List of recipients
@@ -155,6 +151,10 @@ async def verify_email(token: str, user_collection=Depends(get_user_collection))
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Verification link has expired")
     except InvalidTokenError:
         raise credentials_exception
 
@@ -169,8 +169,11 @@ async def verify_email(token: str, user_collection=Depends(get_user_collection))
     return {"message": "Email verified successfully"}
 
 # Register new user and send verification email
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register_user(user: SignUpUser, user_collection=Depends(get_user_collection)):
+@router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
+async def register_user(
+    user: UserCreate, 
+    user_collection=Depends(get_user_collection)
+):
     existing_user = await user_collection.find_one({"email": user.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="User already registered")
@@ -181,11 +184,17 @@ async def register_user(user: SignUpUser, user_collection=Depends(get_user_colle
     # Create a new user and store in the database (with is_verified=False initially)
     user_dict = user.model_dump(exclude={"password"})
     new_user = UserInDB(**user_dict, hashed_password=hashed_password)
-    await user_collection.insert_one(new_user.model_dump())
+    result = await user_collection.insert_one(new_user.model_dump())
     
-    # Create a verification token and send verification email
-    verification_token = create_verification_token(user.email)
+    # Fetch the newly created user to include the '_id'
+    created_user = await user_collection.find_one({"_id": result.inserted_id})
+    user_public = UserPublic(**created_user)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)  # Token valid for 1 hour
+    to_encode = {"sub": user_public.email, "exp": expires_at}
+    # Create email verification token
+    verification_token = create_access_token(to_encode)
+    # Send verification email
     await send_verification_email(user.email, verification_token)
 
-    return {"message": "User registered successfully, please verify your email"}
+    return user_public
 

@@ -1,13 +1,37 @@
-from pydantic import BaseModel, EmailStr, SecretStr
+from pydantic import BaseModel, EmailStr, SecretStr, Field, ConfigDict, BeforeValidator
+from typing import Annotated, Optional
+from datetime import datetime, timezone
 
-class User(BaseModel):
+PyObjectId = Annotated[str, BeforeValidator(str)]
+
+class UserBase(BaseModel):
     firstname: str
     lastname: str
-    email: EmailStr | None = None
+    email: EmailStr
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class UserInDB(User):
+class UserCreate(UserBase):
+    password: SecretStr
+
+class UserUpdate(BaseModel):
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
+    password: Optional[SecretStr] = None
+
+class UserInDB(UserBase):
+    id: PyObjectId = Field(alias="_id")
     hashed_password: str
     is_verified: bool = False
 
-class SignUpUser(User):
-    password: SecretStr
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
+class UserPublic(UserBase):
+    id: PyObjectId = Field(alias="_id")
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
