@@ -45,7 +45,7 @@ export function LoginPage() {
       setMessage("Login successful!");
 
       // Redirect the user to the dashboard or home page after successful login
-      router.push("/dashboard");
+      router.push("/home");
     } catch (error: any) {
       console.log(error.response);
       if (error.response && error.response.status === 401) {
