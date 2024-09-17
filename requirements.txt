@@ -1,11 +1,14 @@
 toml
 python-dateutil
 uvicorn[standard]
-sqlalchemy
+# sqlalchemy
 fastapi
 strenum
-psycopg2
 python-jose[cryptography]
 python-multipart
-passlib[bcrypt]
+passlib
+bcrypt==4.0.1
 pydantic[email]
+motor
+fastapi-mail
+pyjwt
