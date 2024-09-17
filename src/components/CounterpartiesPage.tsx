@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface Counterparty {
-  id: string;
+  _id: string;
   name: string;
   contact_info: string;
   roles: string[];
@@ -40,7 +40,7 @@ export default function CounterpartiesPage() {
   const [newCounterparty, setNewCounterparty] = useState({
     name: "",
     contact_info: "",
-    roles: [],
+    roles: [] as string[],
     notes: "",
   });
   const [editingCounterparty, setEditingCounterparty] =
@@ -209,7 +209,7 @@ export default function CounterpartiesPage() {
             </TableHeader>
             <TableBody>
               {counterparties.map((counterparty) => (
-                <TableRow key={counterparty.id}>
+                <TableRow key={counterparty._id}>
                   <TableCell>{counterparty.name}</TableCell>
                   <TableCell>{counterparty.contact_info}</TableCell>
                   <TableCell>{counterparty.roles.join(", ")}</TableCell>

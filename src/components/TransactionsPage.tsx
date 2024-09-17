@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 
 interface Transaction {
-  id: string;
+  _id: string;
   commodity_id: string;
   counterparty_id: string;
   quantity: number;
@@ -43,12 +43,12 @@ interface Transaction {
 }
 
 interface Commodity {
-  id: string;
+  _id: string;
   name: string;
 }
 
 interface Counterparty {
-  id: string;
+  _id: string;
   name: string;
 }
 
@@ -62,8 +62,8 @@ export default function TransactionsPage() {
     counterparty_id: "",
     quantity: "",
     price: "",
-    transaction_type: "PURCHASE",
-    date: "",
+    transaction_type: "purchase",
+    date: new Date().toISOString().split("T")[0], // Default to today's date
     notes: "",
   });
   const token =
@@ -117,6 +117,7 @@ export default function TransactionsPage() {
 
   const handleAddTransaction = async () => {
     try {
+      console.log("newTransaction", newTransaction)
       await axios.post("/api/transactions/", newTransaction, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -127,7 +128,7 @@ export default function TransactionsPage() {
         counterparty_id: "",
         quantity: "",
         price: "",
-        transaction_type: "PURCHASE",
+        transaction_type: "purchase",
         date: "",
         notes: "",
       });
@@ -169,7 +170,7 @@ export default function TransactionsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {commodities.map((commodity) => (
-                    <SelectItem key={commodity.id} value={commodity.id}>
+                    <SelectItem key={commodity._id} value={commodity._id}>
                       {commodity.name}
                     </SelectItem>
                   ))}
@@ -188,7 +189,7 @@ export default function TransactionsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {counterparties.map((counterparty) => (
-                    <SelectItem key={counterparty.id} value={counterparty.id}>
+                    <SelectItem key={counterparty._id} value={counterparty._id}>
                       {counterparty.name}
                     </SelectItem>
                   ))}
@@ -229,8 +230,8 @@ export default function TransactionsPage() {
                   <SelectValue placeholder="Select Transaction Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PURCHASE">Purchase</SelectItem>
-                  <SelectItem value="SALE">Sale</SelectItem>
+                  <SelectItem value="purchase">Purchase</SelectItem>
+                  <SelectItem value="sale">Sale</SelectItem>
                 </SelectContent>
               </Select>
               <Input
@@ -285,11 +286,11 @@ export default function TransactionsPage() {
             </TableHeader>
             <TableBody>
               {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
+                <TableRow key={transaction._id}>
                   <TableCell>
                     {
                       commodities.find(
-                        (commodity) => commodity.id === transaction.commodity_id
+                        (commodity) => commodity._id === transaction.commodity_id
                       )?.name
                     }
                   </TableCell>
@@ -297,7 +298,7 @@ export default function TransactionsPage() {
                     {
                       counterparties.find(
                         (counterparty) =>
-                          counterparty.id === transaction.counterparty_id
+                          counterparty._id === transaction.counterparty_id
                       )?.name
                     }
                   </TableCell>

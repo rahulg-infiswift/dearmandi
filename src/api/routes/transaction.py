@@ -17,7 +17,7 @@ from ..schemas.transaction_schema import TransactionType
 
 router = APIRouter()
 
-@router.post("/", response_model=TransactionInDB)
+@router.post("", response_model=TransactionInDB)
 async def create_transaction(
     transaction: TransactionCreate,
     current_user=Depends(get_current_verified_user),
@@ -25,6 +25,7 @@ async def create_transaction(
     commodity_collection=Depends(get_commodity_collection),
     counterparty_collection=Depends(get_counterparty_collection),
 ):
+    print("Creating transaction", transaction)
     # Validate commodity_id
     if not ObjectId.is_valid(transaction.commodity_id):
         raise HTTPException(status_code=400, detail="Invalid commodity ID")
@@ -53,11 +54,12 @@ async def create_transaction(
     new_transaction = await transaction_collection.find_one({"_id": result.inserted_id})
     return TransactionInDB(**new_transaction)
 
-@router.get("/", response_model=List[TransactionInDB])
+@router.get("", response_model=List[TransactionInDB])
 async def list_transactions(
     current_user=Depends(get_current_verified_user),
     transaction_collection=Depends(get_transaction_collection),
 ):
+    print("fetching all transactions")
     transactions_cursor = transaction_collection.find()
     transactions = await transactions_cursor.to_list(length=None)
     return [TransactionInDB(**transaction) for transaction in transactions]
