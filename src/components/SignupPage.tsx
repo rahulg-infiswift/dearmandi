@@ -19,11 +19,14 @@ export const description =
   "A sign up form with first name, last name, email and password inside a card. There's an option to sign up with GitHub and a link to login if you already have an account";
 
 export function SignupPage() {
+  // State variables for form fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // State variables for message display
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false); // New state variable
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,11 +39,22 @@ export function SignupPage() {
         password: password,
       });
 
-      setMessage(response.data.message);
+      // Clear the form fields
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPassword("");
+
+      // Set success message
+      setMessage(
+        "Registration successful! Please check your email to verify your account."
+      );
+      setIsError(false); // Indicate that this is a success message
     } catch (error: any) {
       setMessage(
         error.response?.data?.detail || "Error occurred during signup"
       );
+      setIsError(true); // Indicate that this is an error message
     }
   };
 
@@ -48,7 +62,11 @@ export function SignupPage() {
     <Card className="mx-auto max-w-sm">
       <CardHeader>
         <CardTitle className="text-xl">Sign Up</CardTitle>
-        {message && <p className="mb-4 text-red-500">{message}</p>}
+        {message && (
+          <p className={`mb-4 ${isError ? "text-red-500" : "text-green-500"}`}>
+            {message}
+          </p>
+        )}
         <CardDescription>
           Enter your information to create an account
         </CardDescription>
