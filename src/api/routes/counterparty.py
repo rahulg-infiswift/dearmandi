@@ -12,7 +12,7 @@ from .auth import get_current_verified_user
 
 router = APIRouter()
 
-@router.post("", response_model=CounterpartyInDB)
+@router.post("/", response_model=CounterpartyInDB)
 async def create_counterparty(
     counterparty: CounterpartyCreate,
     current_user=Depends(get_current_verified_user),
@@ -30,7 +30,7 @@ async def create_counterparty(
     new_counterparty = await counterparty_collection.find_one({"_id": result.inserted_id})
     return CounterpartyInDB(**new_counterparty)
 
-@router.get("", response_model=List[CounterpartyInDB])
+@router.get("/", response_model=List[CounterpartyInDB])
 async def list_counterparties(
     current_user=Depends(get_current_verified_user),
     counterparty_collection=Depends(get_counterparty_collection),

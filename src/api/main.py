@@ -12,7 +12,6 @@ from .routes import (
     transaction, 
     counterparty
 )
-from .controllers import todo_controller
 from .database import (
     check_mongodb_connection,
     close_mongodb_connection,
@@ -28,7 +27,7 @@ async def lifespan(app: FastAPI):
     await close_mongodb_connection()
 
 
-app = FastAPI(lifespan=lifespan, redirect_slashes=False)
+app = FastAPI(lifespan=lifespan, redirect_slashes=True)
 
 # CORS Middleware # Not required as using proxy in next.config.js
 # app.add_middleware(
@@ -40,11 +39,11 @@ app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 # )
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
-app.include_router(todo.router, prefix="/api/todos", tags=["Todos"])
 app.include_router(user.router, prefix="/api/users", tags=["Users"])
 app.include_router(commodity.router, prefix="/api/commodities", tags=["Commodities"])
 app.include_router(transaction.router, prefix="/api/transactions", tags=["Transactions"])
 app.include_router(counterparty.router, prefix="/api/counterparties", tags=["Counterparties"])
+app.include_router(todo.router, prefix="/api/todos", tags=["Todos"])
 
 
 @app.get("/", tags=["Root"])

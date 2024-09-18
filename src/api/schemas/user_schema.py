@@ -13,6 +13,10 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: SecretStr
 
+class UserCreateDB(UserBase):
+    hashed_password: str
+    is_verified: bool = False
+
 class UserUpdate(BaseModel):
     firstname: Optional[str] = None
     lastname: Optional[str] = None

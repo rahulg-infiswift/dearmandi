@@ -8,7 +8,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from passlib.context import CryptContext
 
-from ..schemas.user_schema import UserCreate, UserInDB, UserPublic
+from ..schemas.user_schema import UserCreate, UserInDB, UserPublic, UserCreateDB
 from ..schemas.token_schema import Token, TokenData
 from ..database import get_user_collection
 from ..config import settings
@@ -169,7 +169,7 @@ async def verify_email(token: str, user_collection=Depends(get_user_collection))
     return {"message": "Email verified successfully"}
 
 # Register new user and send verification email
-@router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
+@router.post("/register/", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user: UserCreate, 
     user_collection=Depends(get_user_collection)
@@ -183,7 +183,7 @@ async def register_user(
     
     # Create a new user and store in the database (with is_verified=False initially)
     user_dict = user.model_dump(exclude={"password"})
-    new_user = UserInDB(**user_dict, hashed_password=hashed_password)
+    new_user = UserCreateDB(**user_dict, hashed_password=hashed_password)
     result = await user_collection.insert_one(new_user.model_dump())
     
     # Fetch the newly created user to include the '_id'
