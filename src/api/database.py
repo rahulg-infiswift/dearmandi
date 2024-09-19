@@ -28,17 +28,27 @@ def get_db():
 
 # Dependency to get the user collection
 async def get_user_collection(db=Depends(get_db)):
-    return db.get_collection("users")
+    collection = db.get_collection("users")
+    await collection.create_index("owner_id")
+    return collection
 
 # Dependency to get the todo collection
 async def get_todo_collection(db=Depends(get_db)):
-    return db.get_collection("todos")
+    collection = db.get_collection("todos")
+    await collection.create_index("owner_id")
+    return collection
 
 async def get_commodity_collection(db=Depends(get_db)):
-    return db.get_collection("commodities")
+    collection = db.get_collection("commodities")
+    await collection.create_index("owner_id")
+    return collection
 
 async def get_transaction_collection(db=Depends(get_db)):
-    return db.get_collection("transactions")
+    collection = db.get_collection("transactions")
+    await collection.create_index("owner_id")
+    return collection
 
 async def get_counterparty_collection(db=Depends(get_db)):
-    return db.get_collection("counterparties")
+    collection = db.get_collection("counterparties")
+    await collection.create_index("owner_id")
+    return collection

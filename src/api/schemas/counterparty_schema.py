@@ -24,6 +24,7 @@ class CounterpartyUpdate(BaseModel):
 
 class CounterpartyInDB(CounterpartyBase):
     id: PyObjectId = Field(alias="_id")
+    owner_id: PyObjectId = Field(...)  # Required field to associate with the user
 
     model_config = ConfigDict(
         populate_by_name=True,

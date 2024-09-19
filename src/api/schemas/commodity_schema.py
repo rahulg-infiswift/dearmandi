@@ -19,6 +19,7 @@ class CommodityUpdate(CommodityBase):
 
 class CommodityInDB(CommodityBase):
     id: PyObjectId = Field(alias="_id")
+    owner_id: PyObjectId = Field(...)  # Add this line
 
     model_config = ConfigDict(
         populate_by_name=True,
