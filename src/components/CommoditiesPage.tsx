@@ -51,7 +51,7 @@ export default function CommoditiesPage() {
 
   const fetchCommodities = async () => {
     try {
-      const response = await axios.get("/api/commodities/", {
+      const response = await axios.get("/api/commodities", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -66,7 +66,7 @@ export default function CommoditiesPage() {
   const handleAddCommodity = async () => {
     try {
       console.log(newCommodity)
-      await axios.post("/api/commodities/", newCommodity, {
+      await axios.post("/api/commodities", newCommodity, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

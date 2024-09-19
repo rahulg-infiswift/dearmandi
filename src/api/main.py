@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
     await close_mongodb_connection()
 
 
-app = FastAPI(lifespan=lifespan, redirect_slashes=True)
+app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 
 # CORS Middleware # Not required as using proxy in next.config.js
 # app.add_middleware(
