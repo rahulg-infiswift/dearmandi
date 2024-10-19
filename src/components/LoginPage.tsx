@@ -39,18 +39,23 @@ export function LoginPage() {
           "Content-Type": "application/x-www-form-urlencoded", // Set the correct content type
         },
       });
-
+      
+      // If the login is successful, store the token and navigate to the home page
       const { access_token } = response.data;
       localStorage.setItem("token", access_token); // Store the token in localStorage (or use cookies if needed)
       setMessage("Login successful!");
+      // Redirect the user to the dashboard or home page after successful login
       router.push("/home");
     } catch (error: any) {
       console.log(error.response);
       if (error.response && error.response.status === 401) {
+        // If the status is 401 Unauthorized, display a specific message
         setMessage("Invalid email or password. Please try again.");
       } else if (error.response && error.response.status === 403) {
+        // Handle unverified email
         setMessage("Your email is not verified. Please check your inbox.");
       } else {
+        // For other errors, display a generic error message
         setMessage("Login failed. Please check your credentials.");
       }
     }
