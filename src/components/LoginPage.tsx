@@ -22,6 +22,7 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(""); // To display success or error messages
+  const [loading, setLoading] = useState(false); // Add loading state
   const router = useRouter(); // For navigation after successful login
 
   const handleSubmit = async (e: FormEvent) => {
@@ -38,12 +39,11 @@ export function LoginPage() {
           "Content-Type": "application/x-www-form-urlencoded", // Set the correct content type
         },
       });
-
+      
       // If the login is successful, store the token and navigate to the home page
       const { access_token } = response.data;
       localStorage.setItem("token", access_token); // Store the token in localStorage (or use cookies if needed)
       setMessage("Login successful!");
-
       // Redirect the user to the dashboard or home page after successful login
       router.push("/home");
     } catch (error: any) {
@@ -58,6 +58,38 @@ export function LoginPage() {
         // For other errors, display a generic error message
         setMessage("Login failed. Please check your credentials.");
       }
+    }
+  };
+
+  const handleForgotPassword = async (e: FormEvent) => {
+    e.preventDefault(); // Prevent page reload
+
+    if (!email) {
+      setMessage("Please enter your email address first.");
+      return;
+    }
+
+    setLoading(true); // Set loading to true when the request starts
+    setMessage(""); // Clear any previous messages
+
+    try {
+      const response = await fetch(`/api/auth/forgot-password/?email=${encodeURIComponent(email)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        setMessage("Password reset email sent. Please check your inbox.");
+      } else {
+        const data = await response.json();
+        setMessage(data.detail || "Something went wrong.");
+      }
+    } catch (error) {
+      setMessage("An error occurred. Please try again.");
+    } finally {
+      setLoading(false); // Reset loading state after request
     }
   };
 
@@ -88,6 +120,7 @@ export function LoginPage() {
                 <Label htmlFor="password">Password</Label>
                 <Link
                   href="#"
+                  onClick={handleForgotPassword}
                   className="ml-auto inline-block text-sm underline"
                 >
                   Forgot your password?
@@ -109,8 +142,12 @@ export function LoginPage() {
             </Button>
           </div>
         </form>
-        {message && (
-          <div className="mt-4 text-center text-sm text-red-500">{message}</div>
+        {loading ? ( // Conditional rendering for loading state
+          <div className="mt-4 text-center">Sending email...</div>
+        ) : (
+          message && (
+            <div className="mt-4 text-center text-sm text-red-500">{message}</div>
+          )
         )}
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}

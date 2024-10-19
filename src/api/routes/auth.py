@@ -1,5 +1,9 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from fastapi import Form
 
 import jwt
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
@@ -33,6 +37,7 @@ conf = ConnectionConfig(
     TEMPLATE_FOLDER='src/api/email_templates'
 )
 
+templates = Jinja2Templates(directory="src/api/email_templates")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
@@ -107,7 +112,7 @@ async def get_current_verified_user(
     return UserInDB(**current_user.model_dump())
 
 # Login and generate token
-@router.post("/token", response_model=Token)
+@router.post("/token/", response_model=Token)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     user_collection=Depends(get_user_collection)
@@ -198,3 +203,65 @@ async def register_user(
 
     return user_public
 
+async def send_reset_email(email: str, token: str):
+    reset_link = f"{settings.BASE_URL}/api/auth/reset-password?token={token}"
+    message = MessageSchema(
+        subject="Reset Your Password",
+        recipients=[email],
+        template_body={"reset_link": reset_link},
+        subtype="html"
+    )
+    
+    fm = FastMail(conf)
+    await fm.send_message(message, template_name="password_reset_email.html")
+
+@router.post("/forgot-password/")
+async def forgot_password(
+    email: str, 
+    user_collection=Depends(get_user_collection)
+):
+    # Check if user exists
+    user = await get_user(user_collection, email)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    # Create a password reset token valid for a limited time (e.g., 1 hour)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    to_encode = {"sub": user.email, "exp": expires_at}
+    reset_token = create_access_token(to_encode)
+    
+    # Send password reset email
+    await send_reset_email(user.email, reset_token)
+    
+    return {"message": "Password reset email sent successfully"}
+
+# Define the route to serve the password reset form
+@router.get("/reset-password", response_class=HTMLResponse)
+async def reset_password_form(request: Request, token: str):
+    # Optionally, you can add token validation here if needed
+    return templates.TemplateResponse("reset_password_form.html", {"request": request, "token": token})
+
+@router.post("/reset-password/")
+async def reset_password(request: Request, token: str = Form(...), new_password: str = Form(...), user_collection=Depends(get_user_collection)):
+    print(await request.form())
+    # Verify the token
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset link has expired")
+    except InvalidTokenError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
+
+    # Find the user by email
+    user = await user_collection.find_one({"email": email})
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    # Update the password
+    hashed_password = get_password_hash(new_password)
+    await user_collection.update_one({"email": email}, {"$set": {"hashed_password": hashed_password}})
+
+    return {"message": "Password reset successful"}
