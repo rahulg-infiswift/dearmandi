@@ -17,7 +17,7 @@ from python_accounting.database.session import get_session
 from python_accounting import models, transactions
 from python_accounting.reports import IncomeStatement
 from python_accounting.config import config
-from src.api import utils
+from .routes import auth as utils
 database = config.database
 engine = create_engine(database["url"])
 Base.metadata.create_all(engine) # run migrations to create tables
