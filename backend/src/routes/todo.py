@@ -20,7 +20,7 @@ async def post_todo(
 
     return TodoInDB(**new_todo)
 
-@router.get("/", response_model=List[TodoInDB])
+@router.get("", response_model=List[TodoInDB])
 async def get_todo(
     todo_collection=Depends(get_todo_collection),
 ):

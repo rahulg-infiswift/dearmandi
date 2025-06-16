@@ -51,7 +51,7 @@ export default function CommoditiesPage() {
 
   const fetchCommodities = async () => {
     try {
-      const response = await axios.get("/api/commodities/", {
+      const response = await axios.get("/api/commodities", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -39,7 +39,7 @@ async def update_user_me(
     updated_user = await user_collection.find_one({"_id": current_user.id})
     return UserPublic(**updated_user)
 
-@router.get("/me/items/", response_model=list)
+@router.get("/me/items", response_model=list)
 async def read_own_items(
     current_user: Annotated[UserInDB, Depends(get_current_verified_user)],
 ):
