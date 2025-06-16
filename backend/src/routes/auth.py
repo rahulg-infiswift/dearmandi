@@ -10,6 +10,7 @@ from passlib.context import CryptContext
 
 from ..schemas.user_schema import UserCreate, UserInDB, UserPublic, UserCreateDB
 from ..schemas.token_schema import Token, TokenData
+from ..schemas.password_reset_schema import PasswordResetRequest, PasswordReset
 from ..database import get_user_collection
 from ..config import settings
 
@@ -140,6 +141,19 @@ async def send_verification_email(email: str, token: str):
     fm = FastMail(conf)
     await fm.send_message(message, template_name="verification_email.html")
 
+
+async def send_password_reset_email(email: str, token: str):
+    reset_link = f"{settings.BASE_URL}/reset-password?token={token}"
+    message = MessageSchema(
+        subject="Reset your Password",
+        recipients=[email],
+        template_body={"reset_link": reset_link},
+        subtype="html",
+    )
+
+    fm = FastMail(conf)
+    await fm.send_message(message, template_name="password_reset_email.html")
+
 @router.get("/verify-email")
 async def verify_email(token: str, user_collection=Depends(get_user_collection)):
     credentials_exception = HTTPException(
@@ -197,4 +211,46 @@ async def register_user(
     await send_verification_email(user.email, verification_token)
 
     return user_public
+
+
+@router.post("/request-password-reset")
+async def request_password_reset(
+    request: PasswordResetRequest,
+    user_collection=Depends(get_user_collection),
+):
+    user = await user_collection.find_one({"email": request.email})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    to_encode = {"sub": request.email, "exp": expires_at}
+    reset_token = create_access_token(to_encode)
+    await send_password_reset_email(request.email, reset_token)
+    return {"message": "Password reset email sent"}
+
+
+@router.post("/reset-password")
+async def reset_password(
+    data: PasswordReset,
+    user_collection=Depends(get_user_collection),
+):
+    credentials_exception = HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
+    try:
+        payload = jwt.decode(data.token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token has expired")
+    except InvalidTokenError:
+        raise credentials_exception
+
+    user = await user_collection.find_one({"email": email})
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    hashed_password = get_password_hash(data.new_password.get_secret_value())
+    await user_collection.update_one({"email": email}, {"$set": {"hashed_password": hashed_password}})
+
+    return {"message": "Password reset successful"}
 
