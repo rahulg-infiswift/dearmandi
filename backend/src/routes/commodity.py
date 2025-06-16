@@ -12,7 +12,7 @@ from .auth import get_current_verified_user
 
 router = APIRouter()
 
-@router.post("/", response_model=CommodityInDB)
+@router.post("", response_model=CommodityInDB)
 async def create_commodity(
     commodity: CommodityCreate,
     current_user=Depends(get_current_verified_user),

@@ -32,7 +32,7 @@ export function SignupPage() {
     e.preventDefault();
 
     try {
-      const response = await axios.post("/api/auth/register/", {
+      const response = await axios.post("/api/auth/register", {
         firstname: firstName,
         lastname: lastName,
         email: email,

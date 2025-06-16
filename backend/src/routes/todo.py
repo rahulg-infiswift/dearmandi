@@ -8,7 +8,7 @@ from ..database import get_todo_collection
 
 router = APIRouter()
 
-@router.post("/", response_model=TodoInDB)
+@router.post("", response_model=TodoInDB)
 async def post_todo(
     todo: TodoCreate,
     todo_collection=Depends(get_todo_collection),

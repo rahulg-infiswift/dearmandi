@@ -118,7 +118,7 @@ export default function TransactionsPage() {
   const handleAddTransaction = async () => {
     try {
       console.log("newTransaction", newTransaction);
-      await axios.post("/api/transactions/", newTransaction, {
+      await axios.post("/api/transactions", newTransaction, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
