@@ -55,7 +55,7 @@ export default function CounterpartiesPage() {
 
   const fetchCounterparties = async () => {
     try {
-      const response = await axios.get("/api/counterparties", {
+      const response = await axios.get("/api/counterparties/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -68,7 +68,7 @@ export default function CounterpartiesPage() {
 
   const handleAddCounterparty = async () => {
     try {
-      await axios.post("/api/counterparties", newCounterparty, {
+      await axios.post("/api/counterparties/", newCounterparty, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
