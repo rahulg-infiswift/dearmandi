@@ -61,7 +61,7 @@ async def create_transaction(
     new_transaction = await transaction_collection.find_one({"_id": result.inserted_id})
     return TransactionInDB(**new_transaction)
 
-@router.get("/", response_model=List[TransactionInDB])
+@router.get("", response_model=List[TransactionInDB])
 async def list_transactions(
     current_user=Depends(get_current_verified_user),
     transaction_collection=Depends(get_transaction_collection),

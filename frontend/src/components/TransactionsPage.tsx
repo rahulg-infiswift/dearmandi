@@ -78,7 +78,7 @@ export default function TransactionsPage() {
 
   const fetchTransactions = async () => {
     try {
-      const response = await axios.get("/api/transactions/", {
+      const response = await axios.get("/api/transactions", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -91,7 +91,7 @@ export default function TransactionsPage() {
 
   const fetchCommodities = async () => {
     try {
-      const response = await axios.get("/api/commodities/", {
+      const response = await axios.get("/api/commodities", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -104,7 +104,7 @@ export default function TransactionsPage() {
 
   const fetchCounterparties = async () => {
     try {
-      const response = await axios.get("/api/counterparties/", {
+      const response = await axios.get("/api/counterparties", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

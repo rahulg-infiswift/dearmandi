@@ -80,6 +80,10 @@ python3 -m uvicorn backend.src.main:app --reload
 
 The FastAPI server will be running on [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
+### API Endpoint Style
+
+List endpoints (for example, `/api/commodities`) are exposed **without** a trailing slash.  Make sure frontend calls use the same style.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

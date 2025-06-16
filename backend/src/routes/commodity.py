@@ -36,7 +36,7 @@ async def create_commodity(
     new_commodity = await commodity_collection.find_one({"_id": result.inserted_id})
     return CommodityInDB(**new_commodity)
 
-@router.get("/", response_model=List[CommodityInDB])
+@router.get("", response_model=List[CommodityInDB])
 async def list_commodities(
     current_user=Depends(get_current_verified_user),
     commodity_collection=Depends(get_commodity_collection),
