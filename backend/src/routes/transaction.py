@@ -17,7 +17,7 @@ from ..schemas.transaction_schema import TransactionType
 
 router = APIRouter()
 
-@router.post("/", response_model=TransactionInDB)
+@router.post("", response_model=TransactionInDB)
 async def create_transaction(
     transaction: TransactionCreate,
     current_user=Depends(get_current_verified_user),

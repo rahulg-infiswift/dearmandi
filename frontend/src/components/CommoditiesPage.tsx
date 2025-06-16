@@ -66,7 +66,7 @@ export default function CommoditiesPage() {
   const handleAddCommodity = async () => {
     try {
       console.log(newCommodity)
-      await axios.post("/api/commodities/", newCommodity, {
+      await axios.post("/api/commodities", newCommodity, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -83,7 +83,7 @@ export default function CommoditiesPage() {
     if (!editingCommodity) return;
     try {
       await axios.put(
-        `/api/commodities/${editingCommodity._id}/`,
+        `/api/commodities/${editingCommodity._id}`,
         {
           name: editingCommodity.name,
           description: editingCommodity.description,
@@ -103,7 +103,7 @@ export default function CommoditiesPage() {
 
   const handleDeleteCommodity = async (_id: string) => {
     try {
-      await axios.delete(`/api/commodities/${_id}/`, {
+      await axios.delete(`/api/commodities/${_id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

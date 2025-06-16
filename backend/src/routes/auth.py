@@ -169,7 +169,7 @@ async def verify_email(token: str, user_collection=Depends(get_user_collection))
     return {"message": "Email verified successfully"}
 
 # Register new user and send verification email
-@router.post("/register/", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user: UserCreate, 
     user_collection=Depends(get_user_collection)

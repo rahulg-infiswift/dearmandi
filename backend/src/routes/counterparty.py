@@ -12,7 +12,7 @@ from .auth import get_current_verified_user
 
 router = APIRouter()
 
-@router.post("/", response_model=CounterpartyInDB)
+@router.post("", response_model=CounterpartyInDB)
 async def create_counterparty(
     counterparty: CounterpartyCreate,
     current_user=Depends(get_current_verified_user),
