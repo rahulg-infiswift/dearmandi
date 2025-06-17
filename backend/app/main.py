@@ -3,8 +3,7 @@ from contextlib import asynccontextmanager
 
 # from fastapi.middleware.cors import CORSMiddleware
 
-
-from .routes import (
+from app.routes import (
     auth, 
     todo, 
     user, 
@@ -12,7 +11,7 @@ from .routes import (
     transaction, 
     counterparty
 )
-from .database import (
+from app.database import (
     check_mongodb_connection,
     close_mongodb_connection,
 )

@@ -31,7 +31,7 @@ conf = ConnectionConfig(
     MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
     USE_CREDENTIALS=settings.USE_CREDENTIALS,
     VALIDATE_CERTS=settings.VALIDATE_CERTS,
-    TEMPLATE_FOLDER='src/email_templates'
+    TEMPLATE_FOLDER="app/email_templates"
 )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

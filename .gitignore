@@ -10,8 +10,8 @@
 /coverage
 
 # next.js
-/.next/
-/out/
+frontend/.next/
+frontend/.out/
 
 # production
 /build
@@ -39,3 +39,4 @@ next-env.d.ts
 
 # Notes
 NOTES.md
+frontend/node_modules/
