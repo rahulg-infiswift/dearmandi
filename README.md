@@ -11,13 +11,18 @@
 
 ## Introduction
 
-This is a hybrid Next.js + Python app that uses Next.js as the frontend and FastAPI as the API backend. One great use case of this is to write Next.js apps that use Python AI libraries on the backend.
+This repository contains a Next.js frontend and a FastAPI backend. One great use case of this is to write Next.js apps that use Python AI libraries on the backend.
+
+## Repository Structure
+
+- `frontend/` – Next.js application
+- `backend/` – FastAPI service and Python modules
 
 ## How It Works
 
 The Python/FastAPI server is mapped into to Next.js app under `/api/`.
 
-This is implemented using [`next.config.js` rewrites](https://github.com/digitros/nextjs-fastapi/blob/main/next.config.js) to map any request to `/api/:path*` to the FastAPI API, which is hosted in the `/api` folder.
+This is implemented using [`next.config.js` rewrites](frontend/next.config.js) to map any request to `/api/:path*` to the FastAPI API, which is hosted in the `/api` folder.
 
 On localhost, the rewrite will be made to the `127.0.0.1:8000` port, which is where the FastAPI server is running.
 
@@ -43,29 +48,41 @@ npx create-next-app nextjs-fastapi --example "https://github.com/digitros/nextjs
 
 ## Getting Started
 
-First, install the dependencies:
+Install the frontend dependencies:
 
 ```bash
+cd frontend
 npm install
-# or
-yarn
-# or
-pnpm install
 ```
 
-Then, run the development server:
+Install the backend dependencies:
 
 ```bash
+cd ../backend
+pip install -r requirements.txt
+```
+
+### Running the Frontend
+
+```bash
+cd frontend
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-The FastApi server will be running on [http://127.0.0.1:8000](http://127.0.0.1:8000) – feel free to change the port in `package.json` (you'll also need to update it in `next.config.js`).
+### Running the Backend
+
+```bash
+cd backend
+python3 -m uvicorn backend.src.main:app --reload
+```
+
+The FastAPI server will be running on [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+### API Endpoint Style
+
+List endpoints (for example, `/api/commodities`) are exposed **without** a trailing slash.  Make sure frontend calls use the same style. All API routes, including those for creating, updating, or deleting resources, should avoid trailing slashes.
 
 ## Learn More
 
