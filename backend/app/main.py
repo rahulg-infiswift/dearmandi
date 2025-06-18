@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-
-# from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes import (
     auth, 
@@ -28,14 +27,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 
-# CORS Middleware # Not required as using proxy in next.config.js
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-#     allow_credentials=True,
-#     allow_methods=["*"],  # Allow all HTTP methods (POST, GET, OPTIONS, etc.)
-#     allow_headers=["*"],  # Allow all headers
-# )
+# CORS Middleware - Enable for Vercel deployment
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://dearmandi.vercel.app",
+        "https://dearmandi-git-staging-rahulg-infiswifts-projects.vercel.app/",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods (POST, GET, OPTIONS, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(user.router, prefix="/api/users", tags=["Users"])

@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://dearmandi-backend-git-staging-rahulg-infiswifts-projects.vercel.app/:path*"
+      "destination": "https://dearmandi-backend-git-staging-rahulg-infiswifts-projects.vercel.app/api/:path*"
     }
   ]
 }
