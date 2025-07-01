@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "devCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8000",
+  "builds": [
+    {
+      "src": "app/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app/main.py"
+    }
+  ],
+  "env": {
+    "BASE_URL": "https://dearmandi-backend-git-staging-rahulg-infiswifts-projects.vercel.app"
+  }
+}

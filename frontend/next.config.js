@@ -7,21 +7,21 @@ const nextConfig = {
         destination:
           process.env.NODE_ENV === "development"
             ? "http://127.0.0.1:8000/api/:path*"
-            : "/api/:path*", // Production environment
+            : "https://dearmandi-backend-git-staging-rahulg-infiswifts-projects.vercel.app/api/:path*", // Production environment
       },
       {
         source: "/docs",
         destination:
           process.env.NODE_ENV === "development"
             ? "http://127.0.0.1:8000/docs"
-            : "/api/docs",
+            : "https://dearmandi-backend-git-staging-rahulg-infiswifts-projects.vercel.app/docs",
       },
       {
         source: "/openapi.json",
         destination:
           process.env.NODE_ENV === "development"
             ? "http://127.0.0.1:8000/openapi.json"
-            : "/openapi.json",
+            : "https://dearmandi-backend-git-staging-rahulg-infiswifts-projects.vercel.app/openapi.json",
       },
     ];
   },
